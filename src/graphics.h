@@ -41,6 +41,7 @@ struct sprite {
     uint8_t y;
     uint8_t x;
     int8_t falling;
+    uint8_t screen;
 };
 
 struct tileset {

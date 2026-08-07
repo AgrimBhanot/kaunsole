@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "asset.h"
-
 #define FRAME_MS (1000 / 60)
 
 struct engine engine = {0};
@@ -83,7 +81,7 @@ void ui_init() {
     num_roms = backend_load_roms(rom_names);
     LOG("roms: %d", num_roms);
     // init_palettes();
-    load_tileset(font);
+    // load_tileset(font);
 }
 
 struct rom ui_rom;

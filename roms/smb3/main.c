@@ -24,9 +24,12 @@
 #define PADDLE_Y 232
 
 const uint32_t map[] = {
-    O2(0, 7, 3, 7, 5, 0),
-    // O2(1, 8, 8, 4, 5, 0) | O2_NEXT_PAGE,
-    O2(2, 8, 8, 7, 2, 0) | O2_NEXT_PAGE,
+    O2(0, 0, 8, 5, 4, 0),
+    O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
+    O2(0, 0, 8, 3, 5, 0),
+    O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
+    // O2(0, 0, 8, 3, 5, 0),
+    // O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
     // O2_INDEX(0) | O2_Y(3) | O2_X(7) | O2_WIDTH(7) | O2_HEIGHT(5) | O2_PALETTE(0), 
     // O2_INDEX(1) | O2_Y(8) | O2_X(8) | O2_WIDTH(4) | O2_HEIGHT(5) | O2_PALETTE(0) | O2_NEXT_PAGE, 
     0,
@@ -107,7 +110,7 @@ struct entity mario = {
             .attributes = FLIP_X,
             .hitbox =
                 {
-                    .x = 3,
+                    .x = 140,
                     .y = 0,
                     .height = 16,
                     .width = 10,
@@ -144,7 +147,7 @@ struct entity entities[NUM_ENTITIES] = {0};
 // struct sprite* spr_mario = &mario.entity.sprite;
 
 uint32_t palette[256] = {
-    0xFFFFFFFF, 0xFFFFD395, 0xFFE00000, 0xFF000000,
+    0xFFFFFFFF, 0xFF0000E0, 0xFF95D3FF, 0xFF000000,
     0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
     0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
     0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
@@ -193,8 +196,11 @@ void move_entity(struct entity *entity) {
     entity->x_accumulator -= x_pix;
     entity->y_accumulator -= y_pix;
 
+    // collide_entity(&mario, y_pix, x_pix);
+
     entity->sprite.x += x_pix;
     entity->sprite.y += y_pix;
+
 }
 
 void init() {
@@ -314,8 +320,8 @@ void update(struct input input, uint32_t time) {
         rom.running = false;
     }
 
-    box.falling = box.sprite.y < 200;
-    mario.falling = spr_mario.y < 200;
+    // box.falling = box.sprite.y < 200;
+    mario.falling = spr_mario.y < 11 * 16;
 
     if (box.falling && !box.holding) {
         box.y_vel += FALL_ACCEL * deltatime;
@@ -324,6 +330,8 @@ void update(struct input input, uint32_t time) {
     }
 
     float x_accel;
+
+    // camera_move(input.y, input.x);
 
     if (mario.falling) {
         x_accel = input.x * MARIO_JUMP_RUN_VEL * deltatime;
@@ -405,7 +413,11 @@ void update(struct input input, uint32_t time) {
     if (!box.holding)
         move_entity(&box);
 
+
     move_entity(&mario);
+    int16_t center = mario.sprite.x - 128;
+    mario.sprite.x -= center;
+    camera_move(0, center);
 
     if (mario.holding) {
         if (mario.sprite.attributes & FLIP_X)
@@ -434,6 +446,9 @@ void update(struct input input, uint32_t time) {
 
     cnt_update++;
 }
+extern uint8_t camera_x;
+extern uint8_t camera_y;
+extern uint8_t active_screen;
 
 void draw() {
     // for (int y = 0; y < 32; y++) {
@@ -447,24 +462,31 @@ void draw() {
     camera_draw();
 
     char buf[64];
-    snprintf(buf, 64, "X VEL %f", mario.x_vel);
+    // snprintf(buf, 64, "X VEL %f", mario.x_vel);
+    // draw_chars(buf, font, 0, 0, 0);
+    // snprintf(buf, 64, "Y VEL %f", mario.y_vel);
+    // draw_chars(buf, font, 1, 0, 0);
+
+    // snprintf(buf, 64, "COLLIDING X %d",
+    //          colliding_x(&mario.sprite, &box.sprite));
+    // draw_chars(buf, font, 2, 0, 0);
+    // snprintf(buf, 64, "COLLIDING Y %d",
+    //          colliding_y(&mario.sprite, &box.sprite));
+    // draw_chars(buf, font, 3, 0, 0);
+
+    // snprintf(buf, 64, "X VEL %f", box.x_vel);
+    // draw_chars(buf, font, 4, 0, 0);
+    // snprintf(buf, 64, "Y VEL %f", box.y_vel);
+    // draw_chars(buf, font, 5, 0, 0);
+
+    snprintf(buf, 64, "CAMERA X %u", camera_x);
     draw_chars(buf, font, 0, 0, 0);
-    snprintf(buf, 64, "Y VEL %f", mario.y_vel);
+    snprintf(buf, 64, "CAMERA Y %u", camera_y);
     draw_chars(buf, font, 1, 0, 0);
-
-    snprintf(buf, 64, "COLLIDING X %d",
-             colliding_x(&mario.sprite, &box.sprite));
+    snprintf(buf, 64, "ACTIVE SCREEN %u", active_screen);
     draw_chars(buf, font, 2, 0, 0);
-    snprintf(buf, 64, "COLLIDING Y %d",
-             colliding_y(&mario.sprite, &box.sprite));
-    draw_chars(buf, font, 3, 0, 0);
 
-    snprintf(buf, 64, "X VEL %f", box.x_vel);
-    draw_chars(buf, font, 4, 0, 0);
-    snprintf(buf, 64, "Y VEL %f", box.y_vel);
-    draw_chars(buf, font, 5, 0, 0);
-
-    draw_sprite(&box.sprite);
+    // draw_sprite(&box.sprite);
     draw_sprite(&spr_mario);
     // next_frame(&mario.entity.sprite);
 }
