@@ -7,9 +7,9 @@
 #include "../../src/rom.h"
 #include "../../src/sprite.h"
 
+#include "camera.h"
 #include "defs.h"
 #include "obj.h"
-#include "camera.h"
 
 #define NUM_X_BLOCKS 8
 #define NUM_Y_BLOCKS 4
@@ -26,12 +26,13 @@
 const uint32_t map[] = {
     O2(0, 0, 8, 5, 4, 0),
     O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
-    O2(0, 0, 8, 3, 5, 0),
+    O2(0, 0, 8, 3, 5, 0),   
     O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
     // O2(0, 0, 8, 3, 5, 0),
     // O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
-    // O2_INDEX(0) | O2_Y(3) | O2_X(7) | O2_WIDTH(7) | O2_HEIGHT(5) | O2_PALETTE(0), 
-    // O2_INDEX(1) | O2_Y(8) | O2_X(8) | O2_WIDTH(4) | O2_HEIGHT(5) | O2_PALETTE(0) | O2_NEXT_PAGE, 
+    // O2_INDEX(0) | O2_Y(3) | O2_X(7) | O2_WIDTH(7) | O2_HEIGHT(5) |
+    // O2_PALETTE(0), O2_INDEX(1) | O2_Y(8) | O2_X(8) | O2_WIDTH(4) |
+    // O2_HEIGHT(5) | O2_PALETTE(0) | O2_NEXT_PAGE,
     0,
 };
 
@@ -110,10 +111,10 @@ struct entity mario = {
             .attributes = FLIP_X,
             .hitbox =
                 {
-                    .x = 140,
+                    .x = 2, //.x = 140,
                     .y = 0,
                     .height = 16,
-                    .width = 10,
+                    .width = 12 ,
                 },
         },
 
@@ -147,9 +148,8 @@ struct entity entities[NUM_ENTITIES] = {0};
 // struct sprite* spr_mario = &mario.entity.sprite;
 
 uint32_t palette[256] = {
-    0xFFFFFFFF, 0xFF0000E0, 0xFF95D3FF, 0xFF000000,
-    0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
-    0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
+    0xFFFFFFFF, 0xFF0000E0, 0xFF95D3FF, 0xFF000000, 0xFFFFFFFF, 0xFFAAAAAA,
+    0xFF555555, 0xFF000000, 0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
     0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
 };
 
@@ -184,6 +184,8 @@ void run() {
     }
 }
 
+extern uint8_t camera_x;
+extern uint8_t camera_y;
 uint8_t tile_attr = 0;
 
 void move_entity(struct entity *entity) {
@@ -196,11 +198,9 @@ void move_entity(struct entity *entity) {
     entity->x_accumulator -= x_pix;
     entity->y_accumulator -= y_pix;
 
-    // collide_entity(&mario, y_pix, x_pix);
-
     entity->sprite.x += x_pix;
     entity->sprite.y += y_pix;
-
+    collide_entity(entity, y_pix, x_pix);
 }
 
 void init() {
@@ -321,7 +321,7 @@ void update(struct input input, uint32_t time) {
     }
 
     // box.falling = box.sprite.y < 200;
-    mario.falling = spr_mario.y < 11 * 16;
+    // mario.falling = spr_mario.y < 11 * 16;
 
     if (box.falling && !box.holding) {
         box.y_vel += FALL_ACCEL * deltatime;
@@ -413,7 +413,6 @@ void update(struct input input, uint32_t time) {
     if (!box.holding)
         move_entity(&box);
 
-
     move_entity(&mario);
     int16_t center = mario.sprite.x - 128;
     mario.sprite.x -= center;
@@ -446,8 +445,8 @@ void update(struct input input, uint32_t time) {
 
     cnt_update++;
 }
-extern uint8_t camera_x;
-extern uint8_t camera_y;
+// extern uint8_t camera_x;
+// extern uint8_t camera_y;
 extern uint8_t active_screen;
 
 void draw() {

@@ -25,3 +25,4 @@ void camera_set_guides(struct camera_guide *guide);
 void camera_draw();
 
 void collide_entity(struct entity *entity, int8_t dy, int8_t dx);
+uint16_t solid_at(int16_t draw_x, int16_t draw_y);

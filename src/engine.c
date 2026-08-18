@@ -30,7 +30,8 @@ struct engine engine = {0};
 
 //             for (int i = 0; i < to_read; i++) {
 //                 samples[i] =
-//                     MIN(samples[i] + event->sampler.sample->data[i], INT16_MAX);
+//                     MIN(samples[i] + event->sampler.sample->data[i],
+//                     INT16_MAX);
 //             }
 //         }
 //     }
@@ -82,6 +83,13 @@ void ui_init() {
     LOG("roms: %d", num_roms);
     // init_palettes();
     // load_tileset(font);
+    /* Ensure there's a valid palette for UI rendering to avoid NULL derefs */
+    static uint32_t ui_palette[PALETTE_SIZE * 4] = {0xFFFFFFFF, 0xFF0000E0,
+                                                    0xFF95D3FF, 0xFF000000};
+    if (!engine.palette) {
+        engine.palette = ui_palette;
+    }
+    clear_pixelbuf();
 }
 
 struct rom ui_rom;
@@ -93,17 +101,32 @@ void ui_update(struct input input, uint32_t time) {
             input.a, input.b, rom_index);
     }
 
+    // if (input.a) {
+    //     LOG("opening: %s", rom_names[rom_index]);
+    //     void *so = dlopen(rom_names[rom_index], RTLD_LAZY);
+    //     if (!so)
+    //         LOG("dlopen failed");
+    //     struct rom *rom = dlsym(so, "rom");
+    //     if (!rom)
+    //         LOG("dlsym failed");
+    //     mainloop(rom);
+    // }
+
     if (input.a) {
         LOG("opening: %s", rom_names[rom_index]);
         void *so = dlopen(rom_names[rom_index], RTLD_LAZY);
-        if (!so)
-            LOG("dlopen failed");
+        if (!so) {
+            LOG("dlopen failed: %s", dlerror());
+            return; // Exit early to prevent crash
+        }
+
         struct rom *rom = dlsym(so, "rom");
-        if (!rom)
-            LOG("dlsym failed");
+        if (!rom) {
+            LOG("dlsym failed: %s", dlerror());
+            return; // Exit early
+        }
         mainloop(rom);
     }
-
     if (input.b)
         ui_rom.running = false;
 
@@ -125,21 +148,33 @@ struct rom ui_rom = {
 };
 
 int main(int argc, const char **argv) {
+    backend_init();
+
+    /* If no ROM path provided, run the UI ROM selector */
+    if (argc < 2 || !argv[1]) {
+        LOG("No ROM specified, launching UI");
+        mainloop(&ui_rom);
+        return 0;
+    }
+
     const char *rom_name = argv[1];
     LOG("opening: %s", rom_name);
-    backend_init();
 
     void *so = dlopen(rom_name, RTLD_LAZY);
     if (!so) {
-        LOG("dlopen failed");
-        const char *e = dlerror();
-        fprintf(stderr, "dlopen failed: %s\n", e ? e : "unknown");
+        LOG("dlopen failed: %s", dlerror());
+        return 1;
     }
+
     struct rom *rom = dlsym(so, "rom");
-    if (!rom)
-        LOG("dlsym failed");
+    if (!rom) {
+        LOG("dlsym failed: %s", dlerror());
+        dlclose(so);
+        return 1;
+    }
 
     mainloop(rom);
 
-    // mainloop(&ui_rom);
+    dlclose(so);
+    return 0;
 }
