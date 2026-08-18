@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "../../src/collision.h"
+#include "collision.h"
 #include "../../src/engine.h"
 #include "../../src/rom.h"
 #include "../../src/sprite.h"
@@ -186,6 +186,8 @@ void run() {
 
 extern uint8_t camera_x;
 extern uint8_t camera_y;
+extern uint8_t active_screen;
+
 uint8_t tile_attr = 0;
 
 void move_entity(struct entity *entity) {
@@ -445,9 +447,7 @@ void update(struct input input, uint32_t time) {
 
     cnt_update++;
 }
-// extern uint8_t camera_x;
-// extern uint8_t camera_y;
-extern uint8_t active_screen;
+
 
 void draw() {
     // for (int y = 0; y < 32; y++) {

@@ -11,7 +11,7 @@ LDFLAGS := $(shell pkg-config --libs sdl3)
 
 DEBUG := -g -O0
 
-OBJS := src/audio.c src/engine.c src/graphics.c src/collision.c
+OBJS := src/audio.c src/engine.c src/graphics.c
 
 all: engines roms
 

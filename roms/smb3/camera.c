@@ -85,7 +85,6 @@ const struct obj2d objs2d[256] = {
     },
 };
 
-#define N_SCREENS 8
 
 uint16_t map_x;
 uint8_t screen_x = 0;
@@ -94,8 +93,8 @@ const uint32_t *active_map;
 uint8_t active_screen;
 uint8_t read_offset;
 uint8_t write_offset;
-
 uint16_t block_buffer[N_SCREENS][16][16];
+
 
 void stream_screen(bool reverse) {
     uint32_t o;
@@ -199,172 +198,15 @@ void load_map(const uint32_t *m) {
     stream_screen(0);
 }
 
-// CAMERA
 
-uint8_t camera_x = 0;
-uint8_t camera_y = 0;
-
-//COLLISION FUNCTION
-uint16_t solid_at(int16_t draw_x, int16_t draw_y) {
-    int32_t raw_x = draw_x + camera_x;
-    uint8_t screen;
-    uint8_t bx;
-
-    if (raw_x < 0) {
-        // left of active_screen's visible window — not currently rendered/cached
-        // as active_screen-1; treat as a known gap for now (see caveat below)
-        screen = active_screen;
-        bx = 0;
-    } else if (raw_x < 256) {
-        screen = active_screen;
-        bx = raw_x / 16;
-    } else {
-        screen = (active_screen + 1) % N_SCREENS;
-        bx = (raw_x - 256) / 16;
-    }
-
-    uint8_t by = (draw_y + camera_y) / 16;
-    return block_buffer[screen][by][bx];
-}
-
-
-void collide_sprite(struct sprite *sprite, int8_t dy, int8_t dx) {
-    uint8_t block_x = (sprite->x + sprite->hitbox.x) / 16;
-    uint8_t block_y = (sprite->y + sprite->hitbox.y) / 16;
-
-    uint16_t block_tl = block_buffer[active_screen][sprite->hitbox.x / 16][sprite->hitbox.y / 16];
-    uint16_t block_tr = block_buffer[active_screen][(sprite->hitbox.x + sprite->hitbox.width) / 16][sprite->hitbox.y / 16];
-    uint16_t block_bl = block_buffer[active_screen][sprite->hitbox.x / 16][(sprite->hitbox.y + sprite->hitbox.height) / 16];
-    uint16_t block_br = block_buffer[active_screen][(sprite->hitbox.x + sprite->hitbox.width) / 16][(sprite->hitbox.y + sprite->hitbox.height) / 16];
-
-    switch (block_tl) {
-        case 0:
-            sprite->falling = -1;
-            break;
-    }
-
-    switch (block_tr) {
-        case 0:
-            sprite->falling = -1;
-            break;
-    }
-
-    switch (block_bl) {
-        case 0:
-            sprite->falling = 0;
-            break;
-    }
-
-    switch (block_br) { 
-        case 0:
-            sprite->falling = 0;
-            break;
-    }
-
-}
-
-void collide_entity(struct entity *entity, int8_t dy, int8_t dx) {
-    struct sprite *sprite = &(entity->sprite);
-    entity->falling = true;
-    //char buf[64];
-
-    uint16_t block_tl = solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y);
-    uint16_t block_tr = solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y);
-    uint16_t block_bl = solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y + sprite->hitbox.height);
-    uint16_t block_br = solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y + sprite->hitbox.height);
-
-    if (block_tl != 0){
-        if (solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y - dy) == 0){
-            if (entity->y_vel < 0)
-                entity->y_vel = 0;
-        }
-        if  (solid_at(sprite->x + sprite->hitbox.x - dx, sprite->y + sprite->hitbox.y) == 0){
-            if (entity->x_vel < 0)
-                entity->x_vel = 0;
-        }
-
-    }
-
-    //fprintf(stderr, "block_tl %u\n", block_tl);
-
-    if (block_tr != 0){
-        if (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y - dy) == 0){
-            if (entity->y_vel < 0)
-                entity->y_vel = 0;
-        }
-        if  (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width - dx, sprite->y + sprite->hitbox.y) == 0){
-            if (entity->x_vel > 0)
-                entity->x_vel = 0;
-        }
-
-    }
-    //fprintf(stderr, "block_tr %u\n", block_tr);
-
-    if (block_br != 0){
-        if (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y + sprite->hitbox.height - dy) == 0){
-            if (entity->y_vel > 0)
-                entity->y_vel = 0;
-        }
-
-    if (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width - dx, sprite->y + sprite->hitbox.y + sprite->hitbox.height) == 0){
-            if (entity->x_vel > 0)
-                entity->x_vel = 0;
-        }
-        // Older buggy code, cuz only checking dx
-        //if  (block_buffer[active_screen][(sprite->y + sprite->hitbox.y+ sprite->hitbox.height)/16][(sprite->x + sprite->hitbox.x - dx)/16] == 0){
-        //    entity->falling = false;
-        //}
-
-    }
-    //fprintf(stderr, "block_br %u\n", block_br);
-
-    if (block_bl != 0){
-        if (solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y + sprite->hitbox.height - dy) == 0){
-            if (entity->y_vel > 0)
-                entity->y_vel = 0;
-        }
-
-    if (solid_at(sprite->x + sprite->hitbox.x - dx, sprite->y + sprite->hitbox.y + sprite->hitbox.height) == 0){
-            if (entity->x_vel < 0)
-                entity->x_vel = 0;
-        }
-        // Older buggy code, cuz only checking dx
-        //if  (block_buffer[active_screen][(sprite->y + sprite->hitbox.y+ sprite->hitbox.height)/16][(sprite->x + sprite->hitbox.x + sprite->hitbox.width - dx)/16] == 0){
-        //    entity->falling = false;
-        //}
-
-    }
-    //fprintf(stderr, "block_bl %u\n", block_bl);
-
-    uint16_t ground_check_br = block_br;//(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y + sprite->hitbox.height);
-    uint16_t ground_check_bl = block_bl; //(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y + sprite->hitbox.height);
-    
-    if (ground_check_br != 0 || ground_check_bl != 0) {
-        entity->falling = false;
-        int16_t feet_y = sprite->y + sprite->hitbox.y + sprite->hitbox.height;
-        int16_t snapped_row_top = (feet_y / 16) * 16;
-        sprite->y -= (feet_y - snapped_row_top);
-    }
-
-    if (block_tl !=0) {
-        int16_t body_left_x = sprite->x + sprite->hitbox.x + camera_x;
-        int16_t snapped_row_left = (body_left_x / 16) * 16 +16;
-        // sprite->x -= (body_left_x - snapped_row_left - camera_x);
-        sprite->x = snapped_row_left - sprite->hitbox.x - camera_x;
-    }
-
-    if(block_tr !=0){
-        int16_t body_right_x = sprite->x + sprite->hitbox.x + sprite->hitbox.width + camera_x;
-        int16_t snapped_row_right = (body_right_x / 16) * 16;
-        //sprite->x -= (body_right_x - snapped_row_right);
-        sprite->x = snapped_row_right - sprite->hitbox.x - sprite->hitbox.width - camera_x;
-    }
-
-}
 
 
 uint16_t guide_counter = 0;
 struct camera_guide *guide;
+// CAMERA
+
+uint8_t camera_x = 0;
+uint8_t camera_y = 0;
 
 void camera_reset_pos(uint16_t y, uint16_t x) {
     camera_y = y;

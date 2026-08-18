@@ -24,7 +24,7 @@
 ASSET_SRC := $(shell find assets -type f 2>/dev/null)
 ASSET_OBJ := $(ASSET_SRC:assets/%=build/assets/%.o)
 
-SRCS := main.c camera.c
+SRCS := main.c camera.c collision.c
 BUILDDIR := .
 
 # The target matches what the main root Makefile expects: a shared object (.so)

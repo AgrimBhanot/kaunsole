@@ -151,3 +151,7 @@ The refactoring establishes a consistent coordinate-space model throughout colli
 5. Hitbox offsets and widths are explicitly included during resolution.
 
 This approach eliminates screen-space snapping artifacts and ensures that entity collision boundaries remain correctly aligned with the world grid while the camera scrolls or the entity uses custom hitbox configurations.
+
+> ## IMPORTANT NOTE
+
+The `collision.c` and `collision.h` files have been moved to `roms/`, as the collision functionality is more appropriately implemented as part of the game. The corresponding changes have been made throughout the project to reflect the new file locations and ensure that the collision system continues to function correctly.
