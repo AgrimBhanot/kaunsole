@@ -287,7 +287,7 @@ const struct obj2d objs2d[256] = {
         .flags = O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
     },
     (struct obj2d){
-        // PIPE
+        // TREE
         .start = (uint16_t []) { O1(25, 0), O1(26, 0), O1(26, 0)},
         .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
     },
@@ -313,7 +313,7 @@ void stream_screen(bool reverse) {
         const uint8_t y = O2_Y_GET(o);
         const uint8_t x = O2_X_GET(o);
         const uint8_t height = O2_HEIGHT_GET(o); 
-        const uint8_t width = O2_WIDTH_GET(o);
+        const uint8_t width = O2_WIDTH_GET(o) + 1;
         const uint8_t palette = O2_PALETTE_GET(o);
 
         const struct obj2d obj = objs2d[O2_INDEX_GET(o)];

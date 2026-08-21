@@ -25,21 +25,59 @@
 #define PADDLE_Y 232
 
 const uint32_t map[] = {
-    O2(0, 0, 8, 5, 4, 0),
-    O2(17, 6, 7, 2, 5, 0),
-    O2(10, 0, 2, 2, 2, 0),
-    O2(14, 0, 4, 2, 2, 0),
-    O2(11, 0, 6, 2, 2, 0),
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(0, 0, 8, 5, 5, 0),
-    O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 11, 1, 1, 0),
+    O2(9, 4, 8, 0, 1, 0),
+    O2(5, 8, 8, 0, 1, 0),
+    O2(9, 9, 8, 0, 1, 0),
+    O2(5, 10, 8, 0, 1, 0),
+    O2(5, 10, 5, 0, 1, 0),
+    O2(9, 11, 8, 0, 1, 0),
+    O2(5, 12, 8, 0, 1, 0),
+    O2(15, 11, 11, 3, 1, 0),
+    O2(5, 0, 12, 15, 4, 0) | O2_NEXT_PAGE, //SCREEN 0
+
+    O2(3, 0, 9, 1, 3, 0),
+    O2(3, 6, 8, 1, 4, 0),
+    O2(15, 9, 11, 2, 1, 0),
+    O2(3, 13, 6, 1, 6, 0),
+    O2(5, 0, 12, 15, 4, 0) | O2_NEXT_PAGE, //SCREEN 1
+
+    O2_NEXT_PAGE, // I have no idea why this must be added for it to work.
+
+    O2(3, 3, 6, 1, 6, 0),
+    O2(15, 6, 11, 3, 1, 0),
+    O2(5, 0, 12, 12, 4, 0) | O2_NEXT_PAGE, //SCREEN 2
+
+    O2(15, 1, 11, 1, 1, 0),
+    O2(5, 6, 8, 2, 1, 0),
+    O2(5, 9, 4, 6, 1, 0),
+    O2(5, 0, 12, 15, 4, 0) | O2_NEXT_PAGE, //SCREEN 3
+
+    O2(5, 0, 4, 2, 1, 0),
+    O2(5, 6, 4, 2, 1, 0),
+    O2(9, 9, 4, 0, 1, 0),
+    O2(15, 3, 11, 2, 1, 0),
+    O2(9, 12, 8, 0, 1, 0),
+    O2(9, 14, 8, 0, 1, 0),
+    O2(9, 14, 5, 0, 1, 0),
+    O2(5, 2, 12, 13, 4, 0) | O2_NEXT_PAGE, //SCREEN 4
+
+    O2(9, 0, 8, 0, 1, 0),
+    O2(15, 0, 11, 4, 1, 0),
+    O2(5, 0, 12, 13, 4, 0) | O2_NEXT_PAGE, //SCREEN 5
+
+    O2(3, 0, 10, 1, 2, 0),
+    O2(3, 5, 10, 1, 2, 0),
+    O2(15, 8, 11, 3, 1, 0),
+    O2(12, 13, 5, 1, 7, 0),
+    O2(5, 0, 12, 15, 4, 0) | O2_NEXT_PAGE, //SCREEN 6
     // O2(0, 0, 8, 3, 5, 0),
     // O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
     // O2_INDEX(0) | O2_Y(3) | O2_X(7) | O2_WIDTH(7) | O2_HEIGHT(5) |
     // O2_PALETTE(0), O2_INDEX(1) | O2_Y(8) | O2_X(8) | O2_WIDTH(4) |
     // O2_HEIGHT(5) | O2_PALETTE(0) | O2_NEXT_PAGE,
     0,
+
 };
 
 static const struct texture tex_none = {
@@ -156,8 +194,9 @@ struct entity entities[NUM_ENTITIES] = {
 // struct sprite* spr_mario = &mario.entity.sprite;
 
 uint32_t palette[256] = {
-    0xFFFFFFFF, 0xFF0000E0, 0xFF95D3FF, 0xFF000000, 0xFFFFFFFF, 0xFFAAAAAA,
-    0xFF555555, 0xFF000000, 0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
+    0xFFFDBB90, 0xFF0000E0, 0xFF95D3FF, 0xFF000000,
+    0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
+    0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
     0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
 };
 
