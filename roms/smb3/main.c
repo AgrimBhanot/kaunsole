@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "collision.h"
+#include "enemy.h"
 #include "../../src/engine.h"
 #include "../../src/rom.h"
 #include "../../src/sprite.h"
@@ -36,12 +37,19 @@ const uint32_t map[] = {
     0,
 };
 
+static const struct texture tex_none = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){ TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0) },
+    .num_frames = 1,
+};
+
 static const struct texture tex_mario_stand = {
     .height = 2,
     .width = 2,
     .tiles = (uint16_t[]){60, 62, 61, 63},
     .num_frames = 1,
-};
+};  
 
 static const struct texture tex_mario_run = {
     .height = 2,
@@ -68,13 +76,6 @@ static const struct texture tex_mario_jump = {
     .num_frames = 1,
 };
 
-static const struct texture tex_mario_die = {
-    .height = 2,
-    .width = 2,
-    .tiles = (uint16_t[]){TILE(10, 12, 12), TILE(10, 12, 12) | 1 << 15,
-                          TILE(10, 12, 13), TILE(10, 12, 13) | 1 << 15},
-    .num_frames = 1,
-};
 
 static const struct texture tex_mario_hold = {
     .height = 2,
@@ -96,32 +97,16 @@ static const struct texture tex_mario_hold = {
 static const struct texture tex_box = {
     .height = 2,
     .width = 2,
-    .tiles = (uint16_t[]){TILE(1, 17, 12), TILE(1, 18, 12), TILE(1, 17, 13),
-                          TILE(1, 18, 13)},
+    .tiles = (uint16_t[]){TILE(1, 17, 6), TILE(1, 17, 7), TILE(1, 18, 6),
+                          TILE(1, 18, 7)},
     .num_frames = 1,
 };
 
 uint16_t font[256] = {0};
 
-struct entity mario = {
-    .sprite =
-        {
-            .texture = &tex_mario_run,
-            .palette = 0,
-            .attributes = FLIP_X,
-            .hitbox =
-                {
-                    .x = 2, //.x = 140,
-                    .y = 0,
-                    .height = 16,
-                    .width = 12 ,
-                },
-        },
-
-    .falling = false,
-};
 
 #define box entities[1]
+#define enemy1 entities[2]
 
 #define spr_mario (mario.sprite)
 #define ent_mario (mario.entity)
@@ -141,10 +126,28 @@ const float THROW_UP_VEL = 3;
 const float THROW_X_VEL = 3;
 const float PUT_X_VEL = 0.5;
 
-#define NUM_ENTITIES 8
 
-struct entity entities[NUM_ENTITIES] = {0};
+struct entity entities[NUM_ENTITIES] = {
+    [0]={
+    .sprite =
+        {
+            .texture = &tex_mario_run,
+            .palette = 0,
+            .attributes = FLIP_X,
+            .hitbox =
+                {
+                    .x = 2, //.x = 140,
+                    .y = 0,
+                    .height = 16,
+                    .width = 12 ,
+                },
+        },
 
+    .falling = false,
+},0
+
+};
+#define mario entities[0]
 // struct sprite* spr_mario = &mario.entity.sprite;
 
 uint32_t palette[256] = {
@@ -202,7 +205,12 @@ void move_entity(struct entity *entity) {
 
     entity->sprite.x += x_pix;
     entity->sprite.y += y_pix;
-    collide_entity(entity, y_pix, x_pix);
+    if (entity->sprite.hitbox.height > 0 && entity->sprite.hitbox.width > 0){
+        collide_entity(entity, y_pix, x_pix);
+    }
+    else{
+        entity->falling = true;
+    }
 }
 
 void init() {
@@ -211,6 +219,8 @@ void init() {
     };
 
     engine.palette = palette;
+    enemy_init(&enemy1);
+    entities[0] = mario;
 
     entities[1] = (struct entity){
         .sprite =
@@ -218,7 +228,8 @@ void init() {
                 .texture = &tex_box,
                 .palette = 0,
                 .attributes = 0,
-                .x = 40,
+                .x = 4,
+                .y = 0,
                 .hitbox =
                     {
                         .x = 0,
@@ -226,11 +237,11 @@ void init() {
                         .height = 16,
                         .width = 16,
                     },
+                .screen =0,
             },
 
         .falling = false,
     };
-
     font['0'] = TILE(11, 31, 0);
     font['1'] = TILE(11, 31, 1);
     font['2'] = TILE(11, 31, 2);
@@ -287,6 +298,15 @@ void init() {
     load_map(map);
 }
 
+void entity_fall_kill(struct entity* entity){
+    for(int8_t i = 0; i < NUM_ENTITIES; i++){
+        if((entity+i)->type != ENTITY_KILLED && (entity+i)->sprite.y > 240){
+            (entity+i)->sprite.texture = &tex_none;
+            (entity+i)->type = ENTITY_KILLED;
+            fprintf(stderr, "ENTITY KILLED %d\n", i);
+        }
+    }
+}
 bool had_y = false;
 uint32_t cnt_update = 0;
 
@@ -297,6 +317,14 @@ void update(struct input input, uint32_t time) {
     // if (!(time % 500)) {
     //     next_frame(&spr_mario);
     // }
+    if (input.start) {
+        rom.running = false;
+    }
+    if (mario.type == ENTITY_KILLED) {
+        return;
+    }
+    entity_fall_kill(entities);
+
 
     if (input.b && !mario.falling) {
         jump();
@@ -318,18 +346,9 @@ void update(struct input input, uint32_t time) {
         }
     }
 
-    if (input.start) {
-        rom.running = false;
-    }
 
     // box.falling = box.sprite.y < 200;
     // mario.falling = spr_mario.y < 11 * 16;
-
-    if (box.falling && !box.holding) {
-        box.y_vel += FALL_ACCEL * deltatime;
-    } else {
-        box.y_vel = box.y_vel > 0 ? 0 : box.y_vel;
-    }
 
     float x_accel;
 
@@ -365,7 +384,7 @@ void update(struct input input, uint32_t time) {
 
     mario.x_vel = CLAMP(mario.x_vel + x_accel, -MAX_VEL_X, MAX_VEL_X);
     mario.y_vel = CLAMP(mario.y_vel, -MAX_VEL_Y, MAX_VEL_Y);
-    box.y_vel = CLAMP(box.y_vel, -MAX_VEL_Y, MAX_VEL_Y);
+
 
     if (input.x > 0) {
         spr_mario.attributes |= FLIP_X;
@@ -395,7 +414,6 @@ void update(struct input input, uint32_t time) {
         }
 
         if (mario.y_vel > 0) {
-            // spr_mario.texture = &tex_mario_die;
             spr_mario.texture = &tex_mario_jump;
         } else if (mario.y_vel < 0) {
             spr_mario.texture = &tex_mario_jump;
@@ -412,13 +430,13 @@ void update(struct input input, uint32_t time) {
         spr_mario.frame = 0;
     }
 
-    if (!box.holding)
-        move_entity(&box);
-
     move_entity(&mario);
     int16_t center = mario.sprite.x - 128;
     mario.sprite.x -= center;
     camera_move(0, center);
+
+    enemy_update(&enemy1, deltatime);
+    handle_entity_collisions(&mario, entities, NUM_ENTITIES);
 
     if (mario.holding) {
         if (mario.sprite.attributes & FLIP_X)
@@ -444,10 +462,10 @@ void update(struct input input, uint32_t time) {
     // if (input.x && !(cnt_update % 20)) {
     //     next_frame(&mario.sprite);
     // }
-
+    // fprintf(stderr, "MARIO X %d Y %d VEL X %f VEL Y %f\n", mario.sprite.x,
+    //         mario.sprite.y, mario.x_vel, mario.y_vel);
     cnt_update++;
 }
-
 
 void draw() {
     // for (int y = 0; y < 32; y++) {
@@ -486,6 +504,11 @@ void draw() {
     draw_chars(buf, font, 2, 0, 0);
 
     // draw_sprite(&box.sprite);
-    draw_sprite(&spr_mario);
+    if (mario.type != ENTITY_KILLED) {
+        draw_sprite(&spr_mario);
+    }
+
+    enemy_draw(&enemy1);
+
     // next_frame(&mario.entity.sprite);
 }

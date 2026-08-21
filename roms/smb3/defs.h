@@ -22,8 +22,17 @@
 #define TILE(page, row, column)                                                \
     (page * TILESET_PAGE_OFFSET + row * TILESET_ROW_OFFSET + column)
 
+enum entity_type : unsigned char {
+    ENTITY_NONE,
+    ENTITY_PLAYER,
+    ENTITY_BOX,
+    ENTITY_ENEMY,
+    ENTITY_KILLED,
+};
+
 struct entity {
     struct sprite sprite;
+    enum entity_type type;
     int8_t x_dir;
     float y_vel;
     float x_vel;
@@ -35,3 +44,6 @@ struct entity {
     uint8_t holding;
 };
 
+void move_entity(struct entity *entity);
+#define NUM_ENTITIES 8
+extern struct entity entities[NUM_ENTITIES];
