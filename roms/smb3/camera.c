@@ -15,18 +15,75 @@ const uint16_t blocks[256][4] = {
     { TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0) }, /* blank */
     { TILE(6, 5, 3), TILE(6, 5, 4), TILE(6, 5, 5), TILE(6, 5, 6) }, /* xbox */
     { TILE(6, 5, 7), TILE(6, 5, 7), TILE(6, 5, 8), TILE(6, 5, 8) }, /* pillar */
+
     { TILE(1, 17, 6), TILE(1, 17, 7), TILE(1, 18, 6), TILE(1, 18, 7) }, /* grass_tl */
     { TILE(1, 17, 8), TILE(1, 17, 9), TILE(1, 18, 8), TILE(1, 18, 9) }, /* grass_tm */
     { TILE(1, 17, 10), TILE(1, 17, 11), TILE(1, 18, 10), TILE(1, 18, 11) }, /* grass_tr */
     { TILE(1, 18, 6), TILE(1, 18, 7), TILE(1, 18, 6), TILE(1, 18, 7) }, /* grass_ml */
     { TILE(1, 18, 8), TILE(1, 18, 9), TILE(1, 18, 8), TILE(1, 18, 9) }, /* grass_mm */
     { TILE(1, 18, 10), TILE(1, 18, 11), TILE(1, 18, 10), TILE(1, 18, 11) }, /* grass_mr */
+
     { TILE(1, 16, 0), TILE(1, 17, 0), TILE(1, 16, 1), TILE(1, 17, 1) }, /* hwood_tl */
     { TILE(1, 16, 1), TILE(1, 17, 1), TILE(1, 16, 1), TILE(1, 17, 1) }, /* hwood_tm */
     { TILE(1, 16, 1), TILE(1, 17, 1), TILE(1, 16, 2), TILE(1, 17, 2) }, /* hwood_tr */
     { TILE(1, 18, 0), TILE(1, 19, 0), TILE(1, 18, 1), TILE(1, 19, 1) }, /* hwood_bl */
     { TILE(1, 18, 1), TILE(1, 19, 1), TILE(1, 18, 1), TILE(1, 19, 1) }, /* hwood_bm */
     { TILE(1, 18, 1), TILE(1, 19, 1), TILE(1, 18, 2), TILE(1, 19, 2) }, /* hwood_br */
+
+    { TILE(7, 24, 12), TILE(7, 25, 12), TILE(7, 24, 13), TILE(7, 25, 13) }, /* pipe_tl */
+    { TILE(7, 24, 14), TILE(7, 25, 14), TILE(7, 24, 15), TILE(7, 25, 15) }, /* pipe_tr */
+    { TILE(7, 26, 12), TILE(7, 26, 12), TILE(7, 26, 13), TILE(7, 26, 13) }, /* pipe_bl */
+    { TILE(7, 26, 14), TILE(7, 26, 14), TILE(7, 26, 15), TILE(7, 26, 15) }, /* pipe_br */
+
+    { TILE(6, 2, 0), TILE(6, 3, 0), TILE(6, 2, 1), TILE(6, 3, 1) }, /* cloud */
+
+    { TILE(7, 29, 12), TILE(7, 29, 13), TILE(7, 29, 14), TILE(7, 29, 15) }, /* brick */
+
+    { TILE(1, 7, 12), TILE(1, 7, 13), TILE(1, 7, 14), TILE(1, 7, 15) }, /* wood */
+
+    { TILE(3, 22, 0), TILE(3, 22, 1), TILE(3, 22, 2), TILE(3, 22, 3) }, /* pin_box */
+
+    { TILE(7, 27, 8), TILE(7, 27, 9), TILE(7, 27, 10), TILE(7, 27, 11) }, /* note_block */
+
+    { TILE(7, 25, 8), TILE(7, 25, 9), TILE(7, 25, 10), TILE(7, 25, 11) }, /* qmark_block */
+
+    { TILE(3, 0, 10), TILE(3, 0, 11), TILE(3, 0, 12), TILE(3, 0, 13) }, /* shiny_block */
+
+    { TILE(2, 9, 0), TILE(2, 9, 1), TILE(2, 9, 2), TILE(2, 9, 3) }, /* u_block */
+
+    { TILE(6, 16, 10), TILE(6, 17, 10), TILE(6, 16, 11), TILE(6, 17, 11) }, /* vwood_tl */
+    { TILE(6, 16, 12), TILE(6, 17, 12), TILE(6, 16, 13), TILE(6, 17, 13) }, /* vwood_tr */
+    { TILE(6, 18, 10), TILE(6, 19, 10), TILE(6, 18, 11), TILE(6, 19, 11) }, /* vwood_bl */
+    { TILE(6, 18, 12), TILE(6, 19, 12), TILE(6, 18, 13), TILE(6, 19, 13) }, /* vwood_br */
+
+    { TILE(6, 1, 0), TILE(6, 1, 2), TILE(6, 0, 14), TILE(7, 31, 13) }, /* bpin_tl */
+    { TILE(6, 0, 14), TILE(7, 31, 13), TILE(6, 0, 14), TILE(7, 31, 13) }, /* bpin_tm */
+    { TILE(6, 0, 14), TILE(7, 31, 13), TILE(6, 1, 1), TILE(6, 1, 5) }, /* bpin_tr */
+    { TILE(6, 1, 2), TILE(6, 1, 2), TILE(7, 31, 13), TILE(7, 31, 13) }, /* bpin_ml */
+    { TILE(7, 31, 13), TILE(7, 31, 13), TILE(7, 31, 13), TILE(7, 31, 13) }, /* bpin_mm */
+    { TILE(7, 31, 13), TILE(7, 31, 13), TILE(6, 1, 5), TILE(6, 1, 5) }, /* bpin_mr */
+    { TILE(6, 1, 2), TILE(6, 1, 6), TILE(7, 31, 13), TILE(6, 0, 12) }, /* bpin_bl */
+    { TILE(7, 31, 13), TILE(6, 0, 12), TILE(7, 31, 13), TILE(6, 0, 12) }, /* bpin_bm */
+    { TILE(7, 31, 13), TILE(6, 0, 12), TILE(6, 1, 5), TILE(6, 1, 7) }, /* bpin_br */
+
+    { TILE(11, 7, 4), TILE(11, 7, 5), TILE(11, 7, 6), TILE(11, 7, 7) }, /* o_block */
+
+    { TILE(13, 21, 0), TILE(13, 21, 1), TILE(13, 21, 2), TILE(13, 21, 3) }, /* hbush_l */
+    { TILE(13, 21, 4), TILE(13, 21, 5), TILE(13, 21, 2), TILE(13, 21, 3) }, /* hbush_m */
+    { TILE(13, 21, 4), TILE(13, 21, 5), TILE(13, 21, 6), TILE(13, 21, 7) }, /* hbush_r */
+
+    { TILE(13, 11, 4), TILE(13, 11, 7), TILE(13, 11, 5), TILE(13, 0, 5) }, /* rbridge_l */
+    { TILE(13, 11, 4), TILE(13, 11, 7), TILE(13, 11, 5), TILE(13, 0, 5) }, /* rbridge_m */
+    { TILE(13, 11, 6), TILE(13, 11, 7), TILE(13, 0, 5), TILE(13, 0, 5) }, /* rbridge_r */
+
+    { TILE(6, 6, 11), TILE(6, 6, 15), TILE(6, 6, 12), TILE(6, 7, 0) }, /* tree_tl */
+    { TILE(6, 6, 13), TILE(6, 7, 1), TILE(6, 6, 14), TILE(6, 7, 2) }, /* tree_tr */
+    { TILE(6, 0, 5), TILE(6, 0, 5), TILE(6, 7, 3), TILE(6, 7, 3) }, /* tree_bl */
+    { TILE(6, 7, 4), TILE(6, 7, 4), TILE(6, 0, 5), TILE(6, 0, 5) }, /* tree_br */
+
+
+    
+
 };
 
 const struct obj1d objs1d[256] = {
@@ -58,16 +115,92 @@ const struct obj1d objs1d[256] = {
         .start = 12,
         .flags = O1_TERMINAL | O1_MIDDLE,
     },
-    (struct obj1d) /* O_WOOD_BOTTOM */{
-        .start = 12,
-        .flags = O1_TERMINAL | O1_MIDDLE,
+    (struct obj1d)/* PIPE_CAGE */{
+        .start = 15,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* PIPE_SHAFT */{
+        .start = 17,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* CLOUD */{
+        .start = 19,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* BRICK */{
+        .start = 20,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* WOOD */{
+        .start = 21,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* PIN_BOX */{
+        .start = 22,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* NOTE_BLOCK */{
+        .start = 23,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* QMARK_BLOCK */{
+        .start = 24,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* SHINY_BLOCK */{
+        .start = 25,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* U_BLOCK */{
+        .start = 26,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* VWOOD_TOP */{
+        .start = 27,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* VWOOD_BOTTOM */{
+        .start = 29,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* BPIN_TOP */{
+        .start = 31,
+        .flags = O1_TERMINAL | O1_MIDDLE
+    },
+    (struct obj1d)/* BPIN_MIDDLE */{
+        .start = 34,
+        .flags = O1_TERMINAL | O1_MIDDLE
+    },
+    (struct obj1d)/* BPIN_BOTTOM */{
+        .start = 37,
+        .flags = O1_TERMINAL | O1_MIDDLE
+    },
+    (struct obj1d) /* O_BLOCK */{
+        .start = 40,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* HBUSH */{
+        .start = 41,
+        .flags = O1_TERMINAL | O1_MIDDLE
+    },
+    (struct obj1d)/* RBRIDGE */{
+        .start = 44,
+        .flags = O1_TERMINAL | O1_MIDDLE
+    },
+    (struct obj1d)/* TREE_TOP */{
+        .start = 47,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* TREE_SHAFT */{
+        .start = 49,
+        .flags = O1_MIDDLE
     },
 };
 
 const struct obj2d objs2d[256] = {
     (struct obj2d) {
         // PILLAR PLATFORM
-        .start = (uint16_t []) { O1(0, 0), O1(1, 8), O1(1, 4) },
+        .start = (uint16_t []) { O1(0, 0), O1(1, 8) },
         // .start = (uint16_t []) { O1_INDEX(0) | O1_X(0), O1_INDEX(1) | O1_X(8), O1_INDEX(1) | O1_X(4)},
         .flags = O2_VERTICAL | O2_TERMINAL,
     },
@@ -82,6 +215,81 @@ const struct obj2d objs2d[256] = {
         .start = (uint16_t []) { O1(5, 0), O1(6, 0) },
         // .start = (uint16_t []) { O1_INDEX(2) | O1_X(0), O1_INDEX(3) | O1_X(0), O1_INDEX(3) | O1_X(0)},
         .flags = O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
+    },
+    (struct obj2d){
+        // PIPE
+        .start = (uint16_t []) { O1(7, 0), O1(8, 0), O1(8, 0)},
+        .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
+    },
+    (struct obj2d){
+        // CLOUD
+        .start = (uint16_t []) { O1(9, 0), O1(9, 0), O1(9, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // BRICK
+        .start = (uint16_t []) { O1(10, 0), O1(10, 0), O1(10, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // WOOD
+        .start = (uint16_t []) { O1(11, 0), O1(11, 0), O1(11, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // PIN_BOX
+        .start = (uint16_t []) { O1(12, 0), O1(12, 0), O1(12, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // NOTE_BLOCK
+        .start = (uint16_t []) { O1(13, 0), O1(13, 0), O1(13, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // QMARK_BLOCK
+        .start = (uint16_t []) { O1(14, 0), O1(14, 0), O1(14, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // SHINY_BLOCK
+        .start = (uint16_t []) { O1(15, 0), O1(15, 0), O1(15, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // U_BLOCK
+        .start = (uint16_t []) { O1(16, 0), O1(16, 0), O1(16, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // VWOOD
+        .start = (uint16_t []) { O1(17, 0), O1(18, 0), O1(18, 0)},
+        .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
+    },
+    (struct obj2d){
+        // BPIN
+        .start = (uint16_t []) { O1(19, 0), O1(20, 0), O1(21, 0)},
+        .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
+    },
+    (struct obj2d){
+        // U_BLOCK
+        .start = (uint16_t []) { O1(22, 0), O1(22, 0), O1(22, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // HBUSH
+        .start = (uint16_t []) { O1(23, 0), O1(23, 0), O1(23, 0)},
+        .flags = O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
+    },
+    (struct obj2d){
+        // RBRIDGE
+        .start = (uint16_t []) { O1(24, 0), O1(24, 0), O1(24, 0)},
+        .flags = O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
+    },
+    (struct obj2d){
+        // PIPE
+        .start = (uint16_t []) { O1(25, 0), O1(26, 0), O1(26, 0)},
+        .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
     },
 };
 
