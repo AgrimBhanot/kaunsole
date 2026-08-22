@@ -87,6 +87,40 @@ static const struct texture tex_none = {
     .num_frames = 1,
 };
 
+static const struct texture tex_koopa_run = {
+    .height = 4,
+    .width = 2,
+    .tiles = (uint16_t []){ TILE(9,28,1), TILE(9,28,0),
+                            TILE(9,28,2), TILE(9,28,4),
+                            TILE(9,28,3), TILE(9,28,5),
+                            TILE(9,28,6), TILE(9,28,8),
+
+                            TILE(9,28,1), TILE(9,28,0),
+                            TILE(9,28,10), TILE(9,28,4),
+                            TILE(9,28,11), TILE(9,28,5),
+                            TILE(9,31,8), TILE(9,31,10),
+    },
+    .num_frames = 2,
+};
+
+static const struct texture tex_koopa_shell = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t []){ TILE(9,29,0), TILE(9,29,0) | TILE_Y_MIRROR,
+                            TILE(9,29,1), TILE(9,29,1) | TILE_Y_MIRROR,
+
+                            TILE(9,29,4) | TILE_Y_MIRROR, TILE(9,29,2) | TILE_Y_MIRROR,
+                            TILE(9,29,5) | TILE_Y_MIRROR, TILE(9,29,3) | TILE_Y_MIRROR,
+
+                            TILE(9,31,12), TILE(9,31,12) | TILE_Y_MIRROR,
+                            TILE(9,31,13), TILE(9,31,13) | TILE_Y_MIRROR,
+
+                            TILE(9,29,2), TILE(9,29,4),
+                            TILE(9,29,3), TILE(9,29,5),
+    },
+    .num_frames = 4,
+};
+
 static const struct texture tex_coin_anim = {
     .height = 2,
     .width = 2,

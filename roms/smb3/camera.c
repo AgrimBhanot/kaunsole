@@ -299,7 +299,7 @@ uint8_t active_screen;
 uint8_t read_offset;
 uint8_t write_offset;
 struct block_entry {
-    uint16_t id;
+    uint8_t id;
     uint8_t palette;
 };
 
