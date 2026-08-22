@@ -90,6 +90,45 @@ static const struct texture tex_none = {
     .num_frames = 1,
 };
 
+static const struct texture tex_goomba_stand = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR, 
+                          TILE(9, 29, 9),TILE(9, 29, 9) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_goomba_run = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR, 
+                          TILE(9, 29, 9),TILE(9, 29, 11) | TILE_Y_MIRROR,
+
+                          TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR,
+                          TILE(9, 29, 11), TILE(9, 29, 9) | TILE_Y_MIRROR
+                        },
+    .num_frames = 2,
+};
+
+static const struct texture tex_goomba_die = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 31, 11), TILE(9, 31, 11), 
+                          TILE(9, 30, 11),TILE(9, 30, 11) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_bullet_b = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 12), TILE(9, 29, 14), 
+                          TILE(9, 29, 13),TILE(9, 29, 15),
+                        },
+    .num_frames = 1,
+};
+
 static const struct texture tex_mario_stand = {
     .height = 2,
     .width = 2,
