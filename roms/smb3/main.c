@@ -26,44 +26,176 @@
 #define PADDLE_Y 232
 
 const uint32_t map[] = {
-    // O2(0, 0, 8, 5, 4, 0),
-    // O2(17, 6, 7, 2, 5, 0),
-    // O2(10, 0, 2, 2, 2, 0),
-    // O2(14, 0, 4, 2, 2, 0),
-    // O2(11, 0, 6, 2, 2, 0),
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(15, 0, 13, 15, 1, 0),
-    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    // O2(0, 0, 8, 5, 5, 0),
-    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
-    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
-    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
-    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
-    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
-    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
-    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 11, 1, 1, 1),
+    O2(9, 4, 8, 0, 1, 2),
+    O2(5, 8, 8, 0, 1, 3),
+    O2(9, 9, 8, 0, 1, 2),
+    O2(5, 10, 8, 0, 1, 3),
+    O2(5, 10, 5, 0, 1, 3),
+    O2(9, 11, 8, 0, 1, 2),
+    O2(5, 12, 8, 0, 1, 3),
+    O2(15, 11, 11, 3, 1, 1),
+    O2(5, 0, 12, 15, 4, 3) | O2_NEXT_PAGE, //SCREEN 0
 
+    O2(3, 0, 9, 1, 3, 1),
+    O2(3, 6, 8, 1, 4, 1),
+    O2(15, 9, 11, 2, 1, 1),
+    O2(3, 13, 6, 1, 6, 1),
+    O2(5, 0, 12, 15, 4, 3) | O2_NEXT_PAGE, //SCREEN 1
+
+    O2_NEXT_PAGE, // I have no idea why this must be added for it to work.
+
+    O2(3, 3, 6, 1, 6, 1),
+    O2(15, 6, 11, 3, 1, 1),
+    O2(5, 0, 12, 12, 4, 3) | O2_NEXT_PAGE, //SCREEN 2
+
+    O2(15, 1, 11, 1, 1, 1),
+    O2(5, 6, 8, 2, 1, 3),
+    O2(5, 9, 4, 6, 1, 3),
+    O2(5, 0, 12, 15, 4, 3) | O2_NEXT_PAGE, //SCREEN 3
+
+    O2(5, 0, 4, 2, 1, 3),
+    O2(5, 6, 4, 2, 1, 3),
+    O2(9, 9, 4, 0, 1, 2),
+    O2(15, 3, 11, 2, 1, 1),
+    O2(9, 12, 8, 0, 1, 2),
+    O2(9, 14, 8, 0, 1, 2),
+    O2(9, 14, 5, 0, 1, 2),
+    O2(5, 2, 12, 13, 4, 3) | O2_NEXT_PAGE, //SCREEN 4
+
+    O2(9, 0, 8, 0, 1, 2),
+    O2(15, 0, 11, 4, 1, 1),
+    O2(5, 0, 12, 13, 4, 3) | O2_NEXT_PAGE, //SCREEN 5
+
+    O2(3, 0, 10, 1, 2, 1),
+    O2(3, 5, 10, 1, 2, 1),
+    O2(15, 8, 11, 3, 1, 1),
+    O2(12, 13, 5, 1, 7, 4),
+    O2(5, 0, 12, 15, 4, 3) | O2_NEXT_PAGE, //SCREEN 6
     // O2(0, 0, 8, 3, 5, 0),
     // O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
     // O2_INDEX(0) | O2_Y(3) | O2_X(7) | O2_WIDTH(7) | O2_HEIGHT(5) |
     // O2_PALETTE(0), O2_INDEX(1) | O2_Y(8) | O2_X(8) | O2_WIDTH(4) |
     // O2_HEIGHT(5) | O2_PALETTE(0) | O2_NEXT_PAGE,
     0,
+
+};
+
+static const struct texture tex_none = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){ TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0) },
+    .num_frames = 1,
+};
+
+static const struct texture tex_koopa_run = {
+    .height = 4,
+    .width = 2,
+    .tiles = (uint16_t []){ TILE(9,28,1), TILE(9,28,0),
+                            TILE(9,28,2), TILE(9,28,4),
+                            TILE(9,28,3), TILE(9,28,5),
+                            TILE(9,28,6), TILE(9,28,8),
+
+                            TILE(9,28,1), TILE(9,28,0),
+                            TILE(9,28,10), TILE(9,28,4),
+                            TILE(9,28,11), TILE(9,28,5),
+                            TILE(9,31,8), TILE(9,31,10),
+    },
+    .num_frames = 2,
+};
+
+static const struct texture tex_koopa_shell = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t []){ TILE(9,29,0), TILE(9,29,0) | TILE_Y_MIRROR,
+                            TILE(9,29,1), TILE(9,29,1) | TILE_Y_MIRROR,
+
+                            TILE(9,29,4) | TILE_Y_MIRROR, TILE(9,29,2) | TILE_Y_MIRROR,
+                            TILE(9,29,5) | TILE_Y_MIRROR, TILE(9,29,3) | TILE_Y_MIRROR,
+
+                            TILE(9,31,12), TILE(9,31,12) | TILE_Y_MIRROR,
+                            TILE(9,31,13), TILE(9,31,13) | TILE_Y_MIRROR,
+
+                            TILE(9,29,2), TILE(9,29,4),
+                            TILE(9,29,3), TILE(9,29,5),
+    },
+    .num_frames = 4,
+};
+
+static const struct texture tex_coin_anim = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(7, 30, 8),TILE(7, 30, 10),
+                          TILE(7, 30, 9),TILE(7, 30, 11),
+
+    },
+    .num_frames = 4,
+};
+
+static const struct texture tex_mushroom_p = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(0, 17, 0),TILE(0, 17, 0) | TILE_Y_MIRROR,
+                          TILE(0, 17, 1),TILE(0, 17, 1) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_flower_p = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(0, 17, 2),TILE(0, 17, 2) | TILE_Y_MIRROR,
+                          TILE(0, 17, 3),TILE(0, 17, 3) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_star_p = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(0, 17, 4),TILE(0, 17, 4) | TILE_Y_MIRROR,
+                          TILE(0, 17, 5),TILE(0, 17, 5) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_goomba_stand = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR,
+                          TILE(9, 29, 9),TILE(9, 29, 9) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_goomba_run = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR, 
+                          TILE(9, 29, 9),TILE(9, 29, 11) | TILE_Y_MIRROR,
+
+                          TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR,
+                          TILE(9, 29, 11), TILE(9, 29, 9) | TILE_Y_MIRROR
+                        },
+    .num_frames = 2,
+};
+
+static const struct texture tex_goomba_die = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 31, 11), TILE(9, 31, 11), 
+                          TILE(9, 30, 11),TILE(9, 30, 11) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_bullet_b = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 12), TILE(9, 29, 14), 
+                          TILE(9, 29, 13),TILE(9, 29, 15),
+                        },
+    .num_frames = 1,
 };
 
 static const struct texture tex_none = {
@@ -180,9 +312,12 @@ struct entity entities[NUM_ENTITIES] = {
 // struct sprite* spr_mario = &mario.entity.sprite;
 
 uint32_t palette[256] = {
-    0xFFFFFFFF, 0xFF0000E0, 0xFF95D3FF, 0xFF000000, 0xFFFFFFFF, 0xFFAAAAAA,
-    0xFF555555, 0xFF000000, 0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
-    0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000,
+    0xFFFDBB90, 0xFF0000E0, 0xFF95D3FF, 0xFF000000, //mario
+    0xFFFFFFFF, 0xFF000000, 0xFF46DD4B, 0xFF00A900, //pipe
+    0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF, 0xFF3599FC, //qmark
+    0xFFFFFFFF, 0xFF000000, 0xFFB1BDFC, 0xFF004E99, //brick
+    0xFFFDBB90, 0xFF000000, 0xFF3599FC, 0xFF044bc9, //vwood
+    0xFFFDBB90, 0xFF000000, 0xFFFFFFFF, 0xFF46DD4B, //powerup
 };
 
 extern const uint8_t _binary_smb3_chr_start[];

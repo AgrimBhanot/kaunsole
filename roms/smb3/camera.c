@@ -2,6 +2,7 @@
 #include "tile.h"
 #include "obj.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "defs.h"
@@ -80,10 +81,6 @@ const uint16_t blocks[256][4] = {
     { TILE(6, 6, 13), TILE(6, 7, 1), TILE(6, 6, 14), TILE(6, 7, 2) }, /* tree_tr */
     { TILE(6, 0, 5), TILE(6, 0, 5), TILE(6, 7, 3), TILE(6, 7, 3) }, /* tree_bl */
     { TILE(6, 7, 4), TILE(6, 7, 4), TILE(6, 0, 5), TILE(6, 0, 5) }, /* tree_br */
-
-
-    
-
 };
 
 const struct obj1d objs1d[256] = {
@@ -287,7 +284,7 @@ const struct obj2d objs2d[256] = {
         .flags = O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
     },
     (struct obj2d){
-        // PIPE
+        // TREE
         .start = (uint16_t []) { O1(25, 0), O1(26, 0), O1(26, 0)},
         .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
     },
@@ -301,7 +298,13 @@ const uint32_t *active_map;
 uint8_t active_screen;
 uint8_t read_offset;
 uint8_t write_offset;
-uint16_t block_buffer[N_SCREENS][16][16];
+struct block_entry {
+    uint8_t id;
+    uint8_t palette;
+};
+
+struct block_entry block_buffer[N_SCREENS][16][16];
+
 
 
 void stream_screen(bool reverse) {
@@ -313,7 +316,7 @@ void stream_screen(bool reverse) {
         const uint8_t y = O2_Y_GET(o);
         const uint8_t x = O2_X_GET(o);
         const uint8_t height = O2_HEIGHT_GET(o); 
-        const uint8_t width = O2_WIDTH_GET(o)+1;
+        const uint8_t width = O2_WIDTH_GET(o) + 1;
         const uint8_t palette = O2_PALETTE_GET(o);
 
         const struct obj2d obj = objs2d[O2_INDEX_GET(o)];
@@ -366,9 +369,11 @@ void stream_screen(bool reverse) {
                 }
 
                 if (vertical) {
-                    block_buffer[target_screen][i + y][j + x + o1_x] = block;
+                    block_buffer[target_screen][i + y][j + x + o1_x].id = block;
+                    block_buffer[target_screen][i + y][j + x + o1_x].palette = palette;
                 } else {
-                    block_buffer[target_screen][j + x + o1_x][i + y] = block;
+                    block_buffer[target_screen][j + x + o1_x][i + y].id = block;
+                    block_buffer[target_screen][j + x + o1_x][i + y].palette = block;
                 }
             }
         }
@@ -405,9 +410,6 @@ void load_map(const uint32_t *m) {
     stream_screen(0);
     stream_screen(0);
 }
-
-
-
 
 uint16_t guide_counter = 0;
 struct camera_guide *guide;
@@ -462,17 +464,19 @@ void camera_draw_sprite(struct sprite *sprite) {
 void camera_draw() {
     for (uint8_t y = 0; y < 16; y++) {
         for (uint8_t x = 0; x < 16; x++) {
-            uint16_t block = block_buffer[active_screen][y][x];
-            draw_tile(blocks[block][0], y * 16 - camera_y, x * 16 - camera_x, 0, 0);
-            draw_tile(blocks[block][1], y * 16 - camera_y + 8, x * 16 - camera_x, 0, 0);
-            draw_tile(blocks[block][2], y * 16 - camera_y, x * 16 - camera_x + 8, 0, 0);
-            draw_tile(blocks[block][3], y * 16 - camera_y + 8, x * 16 - camera_x + 8, 0, 0);
+            uint16_t block = block_buffer[active_screen][y][x].id;
+            uint8_t palette = block_buffer[active_screen][y][x].palette;
+            draw_tile(blocks[block][0], y * 16 - camera_y, x * 16 - camera_x, palette, 0);
+            draw_tile(blocks[block][1], y * 16 - camera_y + 8, x * 16 - camera_x, palette, 0);
+            draw_tile(blocks[block][2], y * 16 - camera_y, x * 16 - camera_x + 8, palette, 0);
+            draw_tile(blocks[block][3], y * 16 - camera_y + 8, x * 16 - camera_x + 8, palette, 0);
 
-            block = block_buffer[(active_screen + 1) % N_SCREENS][y][x];
-            draw_tile(blocks[block][0], y * 16 - camera_y, x * 16 - camera_x + 256, 0, 0);
-            draw_tile(blocks[block][1], y * 16 - camera_y + 8, x * 16 - camera_x + 256, 0, 0);
-            draw_tile(blocks[block][2], y * 16 - camera_y, x * 16 - camera_x + 256 + 8, 0, 0);
-            draw_tile(blocks[block][3], y * 16 - camera_y + 8, x * 16 - camera_x + 256 + 8, 0, 0);
+            block = block_buffer[(active_screen + 1) % N_SCREENS][y][x].id;
+            palette = block_buffer[(active_screen + 1) % N_SCREENS][y][x].palette;
+            draw_tile(blocks[block][0], y * 16 - camera_y, x * 16 - camera_x + 256, palette, 0);
+            draw_tile(blocks[block][1], y * 16 - camera_y + 8, x * 16 - camera_x + 256, palette, 0);
+            draw_tile(blocks[block][2], y * 16 - camera_y, x * 16 - camera_x + 256 + 8, palette, 0);
+            draw_tile(blocks[block][3], y * 16 - camera_y + 8, x * 16 - camera_x + 256 + 8, palette, 0);
         }
         // fprintf(stderr, "\n");
     }

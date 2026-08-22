@@ -33,6 +33,10 @@ typedef uint16_t o1;
 #define O1_X_GET(o) ((o >> 8) & 0x0F)
 #define O1_INDEX_GET(o) (o & 0xFF)
 
+#define TILE_X_MIRROR ((uint16_t)(1U << 14))
+#define TILE_Y_MIRROR ((uint16_t)(1U << 15))
+
+
 typedef uint16_t block[];
 
 enum objflags {
