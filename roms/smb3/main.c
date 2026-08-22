@@ -29,12 +29,9 @@ const uint32_t map[] = {
     O2(9, 4, 8, 0, 1, 2),
     O2(5, 8, 8, 0, 1, 3),
     O2(9, 9, 8, 0, 1, 2),
-    O2(18, 9, 7, 0, 1, 5),
     O2(5, 10, 8, 0, 1, 3),
     O2(5, 10, 5, 0, 1, 3),
-    O2(20, 10, 4, 0, 1, 5),
     O2(9, 11, 8, 0, 1, 2),
-    O2(19, 11, 7, 0, 1, 5),
     O2(5, 12, 8, 0, 1, 3),
     O2(15, 11, 11, 3, 1, 1),
     O2(5, 0, 12, 15, 4, 3) | O2_NEXT_PAGE, //SCREEN 0
@@ -90,10 +87,47 @@ static const struct texture tex_none = {
     .num_frames = 1,
 };
 
+static const struct texture tex_coin_anim = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(7, 30, 8),TILE(7, 30, 10),
+                          TILE(7, 30, 9),TILE(7, 30, 11),
+
+    },
+    .num_frames = 4,
+};
+
+static const struct texture tex_mushroom_p = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(0, 17, 0),TILE(0, 17, 0) | TILE_Y_MIRROR,
+                          TILE(0, 17, 1),TILE(0, 17, 1) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_flower_p = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(0, 17, 2),TILE(0, 17, 2) | TILE_Y_MIRROR,
+                          TILE(0, 17, 3),TILE(0, 17, 3) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
+static const struct texture tex_star_p = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(0, 17, 4),TILE(0, 17, 4) | TILE_Y_MIRROR,
+                          TILE(0, 17, 5),TILE(0, 17, 5) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
+};
+
 static const struct texture tex_goomba_stand = {
     .height = 2,
     .width = 2,
-    .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR, 
+    .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR,
                           TILE(9, 29, 9),TILE(9, 29, 9) | TILE_Y_MIRROR,
                         },
     .num_frames = 1,
