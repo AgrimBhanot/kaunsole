@@ -1,173 +1,130 @@
 #include "../../src/graphics.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include "camera.h"
+#include "defs.h"
+#include "enemy_types.h"
 
+/* ── Sprite-vs-sprite overlap tests ────────────────────────────────── */
 
 int8_t colliding_x(struct sprite *s1, struct sprite *s2) {
-    int16_t x_dist = s2->x + s2->hitbox.x - s1->x - s1->hitbox.x;
+    int16_t x_dist = (s2->x + s2->hitbox.x) - (s1->x + s1->hitbox.x);
     if (x_dist > 0) {
         if (x_dist < s1->hitbox.width)
-            return 1; // s1 is colliding with (s2 on the right)
+            return 1;   /* s2 is to the right, overlapping */
         else
             return 0;
     } else {
-        if (x_dist < -s2->hitbox.width)
+        if (x_dist < -(int16_t)s2->hitbox.width)
             return 0;
         else
-            return -1; // s1 is colliding with (s2 on the left)
+            return -1;  /* s2 is to the left, overlapping */
     }
 }
 
 int8_t colliding_y(struct sprite *s1, struct sprite *s2) {
-    int16_t y_dist = s2->y + s2->hitbox.y - s1->y - s1->hitbox.y;
+    int16_t y_dist = (s2->y + s2->hitbox.y) - (s1->y + s1->hitbox.y);
     if (y_dist > 0) {
         if (y_dist < s1->hitbox.height)
-            return 1; // s2 is colliding with (s1 on the top)
+            return 1;   /* s2 is below, overlapping (player above) */
         else
             return 0;
     } else {
-        if (y_dist < -s2->hitbox.height)
+        if (y_dist < -(int16_t)s2->hitbox.height)
             return 0;
         else
-            return -1; // s2 is colliding with (s1 on the bottom)
+            return -1;  /* s2 is above, overlapping (player below) */
     }
 }
 
-bool collidingp(struct sprite *sprite, uint8_t y, uint8_t x) {
-    bool x_bound = sprite->x + sprite->hitbox.x < x &&
-                   x < (sprite->x + sprite->hitbox.width);
-    bool y_bound = sprite->y + sprite->hitbox.y < y &&
-                   y < (sprite->y + sprite->hitbox.height);
-    return x_bound && y_bound;
-}
+/* ── Tile collision sampling ───────────────────────────────────────── */
 
-// bool collide_tile(struct sprite *sprite, )
-extern uint8_t camera_x;
-extern uint8_t camera_y;
-extern uint8_t active_screen;
 extern uint16_t block_buffer[N_SCREENS][16][16];
+extern uint8_t camera_y;
 
+uint16_t solid_at_world(int16_t world_x, int16_t world_y) {
+    if (world_y < 0 || world_y >= 256) return 0;
+    
+    while (world_x < 0) world_x += 2048;
+    while (world_x >= 2048) world_x -= 2048;
 
-//COLLISION HELPER FUNCTION
-uint16_t solid_at(int16_t draw_x, int16_t draw_y) {
-    int32_t raw_x = draw_x + camera_x; // real position relative to left edge of active screen
-    uint8_t screen;
-    uint8_t bx;
+    uint8_t screen = world_x / 256;
+    uint8_t bx = (world_x % 256) / 16;
+    uint8_t by = world_y / 16;
 
-    if (raw_x < 0) {
-        screen = active_screen;
-        bx = 0;
-    } else if (raw_x < 256) {
-        screen = active_screen;
-        bx = raw_x / 16;
-    } else {
-        screen = (active_screen + 1) % N_SCREENS;
-        bx = (raw_x - 256) / 16;
-    }
-
-    uint8_t by = (draw_y + camera_y) / 16;
     return block_buffer[screen][by][bx];
 }
 
+/* ── Two-pass axis-separated tile collision ─────────────────────────
+ *
+ *  Pass 1 (X): move sprite by dx, then check the leading X edge
+ *              against tile grid. Snap and zero x_vel if solid.
+ *  Pass 2 (Y): move sprite by dy, then check the leading Y edge.
+ *              Snap and zero y_vel. Detect ground (falling flag).
+ *
+ *  This prevents the diagonal-push glitch where landing on a
+ *  platform corner ejects the entity sideways.
+ * ────────────────────────────────────────────────────────────────── */
 
-void collide_entity(struct entity *entity, int8_t dy, int8_t dx) {
-    struct sprite *sprite = &(entity->sprite);
+int16_t collide_entity_x(struct entity *entity, int16_t world_x, int32_t dx) {
+    if (dx == 0) return world_x;
+
+    struct sprite *s = &entity->sprite;
+    int16_t top = s->y + s->hitbox.y;
+    int16_t bot = s->y + s->hitbox.y + s->hitbox.height - 1;
+
+    if (dx > 0) {
+        /* Moving right — check right edge */
+        int16_t right = world_x + s->hitbox.x + s->hitbox.width - 1;
+        if (solid_at_world(right, top) || solid_at_world(right, bot)) {
+            int16_t tile_left = SNAP_TILE(right);
+            world_x = tile_left - s->hitbox.x - s->hitbox.width;
+            entity->x_vel = 0;
+        }
+    } else {
+        /* Moving left — check left edge */
+        int16_t left = world_x + s->hitbox.x;
+        if (solid_at_world(left, top) || solid_at_world(left, bot)) {
+            int16_t tile_right = SNAP_TILE(left) + 16;
+            world_x = tile_right - s->hitbox.x;
+            entity->x_vel = 0;
+        }
+    }
+    return world_x;
+}
+
+void collide_entity_y(struct entity *entity, int16_t world_x, int32_t dy) {
+    struct sprite *s = &entity->sprite;
     entity->falling = true;
-    //char buf[64];
 
-    uint16_t block_tl = solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y);
-    uint16_t block_tr = solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y);
-    uint16_t block_bl = solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y + sprite->hitbox.height);
-    uint16_t block_br = solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y + sprite->hitbox.height);
+    int16_t left  = world_x + s->hitbox.x;
+    int16_t right = world_x + s->hitbox.x + s->hitbox.width - 1;
 
-
-    // Check TOP LEFT
-    if (block_tl != 0){
-        int16_t body_left_x = sprite->x + sprite->hitbox.x + camera_x;
-        int16_t snapped_row_left = (body_left_x / 16) * 16 +16;
-        sprite->x = snapped_row_left - sprite->hitbox.x - camera_x;
-
-        if (solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y - dy) == 0){
-            if (entity->y_vel < 0)
+    /* ── Downward / ground check ────────────────────────────────── */
+    {
+        int16_t bottom = s->y + s->hitbox.y + s->hitbox.height;
+        if (solid_at_world(left, bottom) || solid_at_world(right, bottom)) {
+            int16_t tile_top = SNAP_TILE(bottom);
+            s->y = tile_top - s->hitbox.y - s->hitbox.height;
+            if (entity->y_vel >= 0) {
                 entity->y_vel = 0;
+            }
+            entity->falling = false;
         }
-        if  (solid_at(sprite->x + sprite->hitbox.x - dx, sprite->y + sprite->hitbox.y) == 0){
-            if (entity->x_vel < 0)
-                entity->x_vel = 0;
-        }
-
     }
 
-    //fprintf(stderr, "block_tl %u\n", block_tl);
-
-    // Check TOP RIGHT
-    if (block_tr != 0){
-        int16_t body_right_x = sprite->x + sprite->hitbox.x + sprite->hitbox.width + camera_x;
-        int16_t snapped_row_right = (body_right_x / 16) * 16;
-        sprite->x = snapped_row_right - sprite->hitbox.x - sprite->hitbox.width - camera_x;
-
-        if (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y - dy) == 0){
-            if (entity->y_vel < 0)
-                entity->y_vel = 0;
+    /* ── Upward / head check ────────────────────────────────────── */
+    if (dy < 0) {
+        int16_t top = s->y + s->hitbox.y;
+        if (solid_at_world(left, top) || solid_at_world(right, top)) {
+            int16_t tile_bot = SNAP_TILE(top) + 16;
+            s->y = tile_bot - s->hitbox.y;
+            entity->y_vel = 0;
         }
-        if  (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width - dx, sprite->y + sprite->hitbox.y) == 0){
-            if (entity->x_vel > 0)
-                entity->x_vel = 0;
-        }
-
     }
-    //fprintf(stderr, "block_tr %u\n", block_tr);
-
-    // Check BOTTOM RIGHT
-    if (block_br != 0){
-        if (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width, sprite->y + sprite->hitbox.y + sprite->hitbox.height - dy) == 0){
-            if (entity->y_vel > 0)
-                entity->y_vel = 0;
-        }
-
-    if (solid_at(sprite->x + sprite->hitbox.x + sprite->hitbox.width - dx, sprite->y + sprite->hitbox.y + sprite->hitbox.height) == 0){
-            if (entity->x_vel > 0)
-                entity->x_vel = 0;
-        }
-
-    }
-    //fprintf(stderr, "block_br %u\n", block_br);
-
-    // Check BOTTOM LEFT
-    if (block_bl != 0){
-        if (solid_at(sprite->x + sprite->hitbox.x, sprite->y + sprite->hitbox.y + sprite->hitbox.height - dy) == 0){
-            if (entity->y_vel > 0)
-                entity->y_vel = 0;
-        }
-
-    if (solid_at(sprite->x + sprite->hitbox.x - dx, sprite->y + sprite->hitbox.y + sprite->hitbox.height) == 0){
-            if (entity->x_vel < 0)
-                entity->x_vel = 0;
-        }
-
-    }
-    //fprintf(stderr, "block_bl %u\n", block_bl);
-
-    // GROUND COLLISION CHECK
-    if (block_br != 0 || block_bl != 0) {
-        entity->falling = false;
-        int16_t feet_y = sprite->y + sprite->hitbox.y + sprite->hitbox.height;
-        int16_t snapped_row_top = (feet_y / 16) * 16;
-        sprite->y -= (feet_y - snapped_row_top);
-    }
-
 }
 
-
-enum entity_collision_type : unsigned char {
-    PLAYER_KILL,
-    ENEMY_KILL,
-};
-
-bool entity_is_enemy(struct entity *entity) {
-    return entity->type == ENTITY_ENEMY;
-}
-
+/* ── Entity-vs-entity collision ────────────────────────────────────── */
 
 static const struct texture tex_mario_die = {
     .height = 2,
@@ -176,52 +133,51 @@ static const struct texture tex_mario_die = {
                           TILE(10, 12, 13), TILE(10, 12, 13) | 1 << 15},
     .num_frames = 1,
 };
-static const struct texture tex_box = {
-    .height = 2,
-    .width = 2,
-    .tiles = (uint16_t[]){TILE(1, 17, 6), TILE(1, 17, 7), TILE(1, 18, 6),
-                          TILE(1, 18, 7)},
-    .num_frames = 1,
-};
 
-static void handle_player_enemy_collision(struct entity *player, struct entity *enemy, enum entity_collision_type col_type) {
-    if (col_type == PLAYER_KILL) {
-        player->sprite.texture = &tex_mario_die;
-        player->sprite.hitbox.height = 0;
-        player->sprite.hitbox.width = 0;
-        player->falling = true;
-    } else if (col_type == ENEMY_KILL) {
-        enemy->sprite.texture = &tex_box;
-        enemy->sprite.hitbox.height = 0;
-        enemy->sprite.hitbox.width = 0;
-        enemy->falling = true;
-    }
+static void kill_player(struct entity *player) {
+    player->sprite.texture = &tex_mario_die;
+    player->sprite.hitbox.height = 0;
+    player->sprite.hitbox.width = 0;
+    player->falling = true;
+    player->y_vel = -3.0f;  /* small upward bounce on death */
 }
 
-
-#define COUNT 8 // should be >= number of enemies in the level
-uint8_t last_y_collided[COUNT] = {1}; //for enemy kill logic
-
-void handle_entity_collisions(struct entity *player, struct entity entities[], uint8_t count) {
-    
-    
+void handle_entity_collisions(struct entity *player, struct entity ents[], uint8_t count) {
     for (uint8_t i = 0; i < count; i++) {
-        struct entity *other = &entities[i];
+        struct entity *other = &ents[i];
 
-        if (other == player)
-            continue;
+        if (other == player) continue;
+        if (other->type != ENTITY_ENEMY && other->type != ENTITY_PROJECTILE) continue;
+        if (!other->sim_active) continue;
+        if (other->sprite.hitbox.height == 0 || other->sprite.hitbox.width == 0) continue;
 
-        if (!entity_is_enemy(other))
-            continue;
+        int8_t cx = colliding_x(&player->sprite, &other->sprite);
+        int8_t cy = colliding_y(&player->sprite, &other->sprite);
 
-        if (colliding_x(&player->sprite, &other->sprite) && colliding_y(&player->sprite, &other->sprite)) {
-            if (colliding_y(&player->sprite, &other->sprite)==1 && !last_y_collided[i]) {
-                handle_player_enemy_collision(player, other, ENEMY_KILL);
-            } else {
-                handle_player_enemy_collision(player, other, PLAYER_KILL);
+        if (cx && cy) {
+            if (other->type == ENTITY_PROJECTILE) {
+                /* Projectiles always hurt the player */
+                kill_player(player);
+                other->type = ENTITY_KILLED;
+                continue;
             }
-            last_y_collided[i] = (colliding_y(&player->sprite, &other->sprite) != 0);
+
+            const struct enemy_type *etype = &enemy_types[other->enemy_subtype];
+
+            /* Player landing on top (cy == 1 means other is below player) */
+            if (cy == 1 && player->y_vel >= 0) {
+                if (etype->on_stomped) {
+                    etype->on_stomped(other, player);
+                    player->y_vel = -3.0f; /* bounce after stomp */
+                }
+            } else {
+                /* Side / bottom collision */
+                if (etype->on_side_hit) {
+                    etype->on_side_hit(other, player);
+                } else {
+                    kill_player(player);
+                }
+            }
         }
     }
 }
-

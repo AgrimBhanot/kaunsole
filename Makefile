@@ -16,7 +16,7 @@ OBJS := src/audio.c src/engine.c src/graphics.c
 all: engines roms
 
 build/sdl: $(OBJS) src/backends/sdl.c
-	$(CC)  $(DEBUG) $^ -o $@ -rdynamic $(CFLAGS)
+	$(CC)  $(DEBUG) $^ -o $@ -rdynamic $(CFLAGS) $(LDFLAGS)
 
 build/roms/%.so:
 	mkdir -p build/roms

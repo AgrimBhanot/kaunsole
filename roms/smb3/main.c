@@ -4,6 +4,7 @@
 
 #include "collision.h"
 #include "enemy.h"
+#include "enemy_types.h"
 #include "../../src/engine.h"
 #include "../../src/rom.h"
 #include "../../src/sprite.h"
@@ -25,15 +26,38 @@
 #define PADDLE_Y 232
 
 const uint32_t map[] = {
-    O2(0, 0, 8, 5, 4, 0),
-    O2(17, 6, 7, 2, 5, 0),
-    O2(10, 0, 2, 2, 2, 0),
-    O2(14, 0, 4, 2, 2, 0),
-    O2(11, 0, 6, 2, 2, 0),
+    // O2(0, 0, 8, 5, 4, 0),
+    // O2(17, 6, 7, 2, 5, 0),
+    // O2(10, 0, 2, 2, 2, 0),
+    // O2(14, 0, 4, 2, 2, 0),
+    // O2(11, 0, 6, 2, 2, 0),
     O2(15, 0, 13, 15, 1, 0),
     O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
-    O2(0, 0, 8, 5, 5, 0),
-    O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    O2(15, 0, 13, 15, 1, 0),
+    O2(16, 0, 12, 15, 1, 0) | O2_NEXT_PAGE,
+    // O2(0, 0, 8, 5, 5, 0),
+    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+    // O2(2, 0, 12, 16, 2, 0) | O2_NEXT_PAGE,
+
     // O2(0, 0, 8, 3, 5, 0),
     // O2(2, 0, 12, 15, 2, 0) | O2_NEXT_PAGE,
     // O2_INDEX(0) | O2_Y(3) | O2_X(7) | O2_WIDTH(7) | O2_HEIGHT(5) |
@@ -198,6 +222,49 @@ extern uint8_t active_screen;
 
 uint8_t tile_attr = 0;
 
+static uint16_t camera_world_x(void) {
+    return (uint16_t)active_screen * CAMERA_WIDTH + camera_x;
+}
+
+static uint16_t wrap_world_x(int32_t x) {
+    const int32_t world_width = N_SCREENS * CAMERA_WIDTH;
+    x %= world_width;
+    if (x < 0)
+        x += world_width;
+    return (uint16_t)x;
+}
+
+int16_t entity_screen_x(const struct entity *entity) {
+    const int16_t world_width = N_SCREENS * CAMERA_WIDTH;
+    int16_t entity_x = (int16_t)entity->world_screen * CAMERA_WIDTH + entity->world_x;
+    int16_t dx = entity_x - (int16_t)camera_world_x();
+
+    if (dx > world_width / 2)
+        dx -= world_width;
+    else if (dx < -(world_width / 2))
+        dx += world_width;
+
+    return dx;
+}
+
+bool entity_in_sim_zone(const struct entity *entity) {
+    if (entity->type == ENTITY_NONE || entity->type == ENTITY_KILLED)
+        return false;
+
+    int16_t x = entity_screen_x(entity);
+    return x >= 0 && x < SIM_ZONE_WIDTH;
+}
+
+bool entity_in_draw_zone(const struct entity *entity) {
+    if (entity->type == ENTITY_NONE || entity->type == ENTITY_KILLED)
+        return false;
+
+    int16_t x = entity_screen_x(entity);
+    return x > -16 && x < CAMERA_WIDTH;
+}
+
+
+
 void move_entity(struct entity *entity) {
     entity->x_accumulator += entity->x_vel;
     entity->y_accumulator += entity->y_vel;
@@ -208,10 +275,18 @@ void move_entity(struct entity *entity) {
     entity->x_accumulator -= x_pix;
     entity->y_accumulator -= y_pix;
 
-    entity->sprite.x += x_pix;
+    int16_t absolute_x = get_world_x(entity);
+    absolute_x += x_pix;
+
+    if (entity->sprite.hitbox.height > 0 && entity->sprite.hitbox.width > 0){
+        absolute_x = collide_entity_x(entity, absolute_x, x_pix);
+    }
+    
+    set_world_x(entity, absolute_x);
+
     entity->sprite.y += y_pix;
     if (entity->sprite.hitbox.height > 0 && entity->sprite.hitbox.width > 0){
-        collide_entity(entity, y_pix, x_pix);
+        collide_entity_y(entity, absolute_x, y_pix);
     }
     else{
         entity->falling = true;
@@ -224,10 +299,14 @@ void init() {
     };
 
     engine.palette = palette;
-    enemy_init(&enemy1);
-    entities[0] = mario;
+    mario.type = ENTITY_PLAYER;
+    mario.world_screen = active_screen;
+    mario.world_x = camera_x + mario.sprite.x;
 
     entities[1] = (struct entity){
+        .type = ENTITY_BOX,
+        .world_screen = 0,
+        .world_x = 4,
         .sprite =
             {
                 .texture = &tex_box,
@@ -247,6 +326,16 @@ void init() {
 
         .falling = false,
     };
+    
+    enemy_init_at(&entities[2], 0, 192, 128, ENEMY_GOOMBA);
+    enemy_init_at(&entities[3], 1, 220, 128, ENEMY_TURTLE);
+    enemy_init_at(&entities[4], 2, 50, 128, ENEMY_DUCK);
+    enemy_init_at(&entities[5], 3, 100, 128, ENEMY_FIREBALL_SHOOTER);
+    
+    for (int i = 6; i < NUM_ENTITIES; i++) {
+        entities[i].type = ENTITY_NONE;
+    }
+
     font['0'] = TILE(11, 31, 0);
     font['1'] = TILE(11, 31, 1);
     font['2'] = TILE(11, 31, 2);
@@ -305,15 +394,20 @@ void init() {
 
 void entity_fall_kill(struct entity* entity){
     for(int8_t i = 0; i < NUM_ENTITIES; i++){
-        if((entity+i)->type != ENTITY_KILLED && (entity+i)->sprite.y > 240){
-            (entity+i)->sprite.texture = &tex_none;
-            (entity+i)->type = ENTITY_KILLED;
-            fprintf(stderr, "ENTITY KILLED %d\n", i);
+        if((entity+i)->type != ENTITY_NONE && (entity+i)->type != ENTITY_KILLED){
+            if (i == 0 || (entity+i)->sim_active) {
+                if ((entity+i)->sprite.y > 240) {
+                    (entity+i)->sprite.texture = &tex_none;
+                    (entity+i)->type = ENTITY_KILLED;
+                    fprintf(stderr, "ENTITY KILLED by fall%d\n", i);
+                }
+            }
         }
     }
 }
 bool had_y = false;
 uint32_t cnt_update = 0;
+int16_t center;
 
 void update(struct input input, uint32_t time) {
     float deltatime = (float)(time - gametime) / 1000;
@@ -328,9 +422,6 @@ void update(struct input input, uint32_t time) {
     if (mario.type == ENTITY_KILLED) {
         return;
     }
-    entity_fall_kill(entities);
-
-
     if (input.b && !mario.falling) {
         jump();
     }
@@ -436,12 +527,40 @@ void update(struct input input, uint32_t time) {
     }
 
     move_entity(&mario);
-    int16_t center = mario.sprite.x - 128;
-    mario.sprite.x -= center;
+    
+    entity_world_to_sprite(&mario, active_screen, camera_x);
+    center = mario.sprite.x - 128;
     camera_move(0, center);
 
-    enemy_update(&enemy1, deltatime);
+    for (int i = 2; i < NUM_ENTITIES; i++) {
+        if (entities[i].type == ENTITY_ENEMY) {
+            enemy_update(&entities[i], deltatime);
+        } else if (entities[i].type == ENTITY_PROJECTILE) {
+            if (entities[i].state_timer > 0) {
+                entities[i].state_timer--;
+                
+                int16_t dist = real_world_distance(entities[i].world_screen, entities[i].world_x, active_screen, camera_x);
+                entities[i].sim_active = (dist >= -128 && dist < 384);
+                
+                if (entities[i].sim_active) {
+                    move_entity(&entities[i]);
+                }
+                
+                if (entities[i].state_timer == 0) {
+                    entities[i].type = ENTITY_KILLED;
+                }
+            }
+        }
+    }
+    
+    for (int i = 0; i < NUM_ENTITIES; i++) {
+        if (entities[i].type != ENTITY_NONE && entities[i].type != ENTITY_KILLED) {
+            entity_world_to_sprite(&entities[i], active_screen, camera_x);
+        }
+    }
+    
     handle_entity_collisions(&mario, entities, NUM_ENTITIES);
+    entity_fall_kill(entities);
 
     if (mario.holding) {
         if (mario.sprite.attributes & FLIP_X)
@@ -513,7 +632,15 @@ void draw() {
         draw_sprite(&spr_mario);
     }
 
-    enemy_draw(&enemy1);
+    for (int i = 2; i < NUM_ENTITIES; i++) {
+        if (entities[i].type == ENTITY_ENEMY) {
+            enemy_draw(&entities[i]);
+        } else if (entities[i].type == ENTITY_PROJECTILE) {
+            if (entities[i].sim_active && entities[i].sprite.x >= 0 && entities[i].sprite.x < CAMERA_WIDTH) {
+                draw_sprite(&entities[i].sprite);
+            }
+        }
+    }
 
     // next_frame(&mario.entity.sprite);
 }

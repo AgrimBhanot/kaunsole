@@ -313,7 +313,7 @@ void stream_screen(bool reverse) {
         const uint8_t y = O2_Y_GET(o);
         const uint8_t x = O2_X_GET(o);
         const uint8_t height = O2_HEIGHT_GET(o); 
-        const uint8_t width = O2_WIDTH_GET(o);
+        const uint8_t width = O2_WIDTH_GET(o)+1;
         const uint8_t palette = O2_PALETTE_GET(o);
 
         const struct obj2d obj = objs2d[O2_INDEX_GET(o)];
@@ -321,23 +321,23 @@ void stream_screen(bool reverse) {
         const bool middle = obj.flags & O2_MIDDLE;
         const bool vertical = obj.flags & O2_VERTICAL;
 
-        fprintf(stderr, "o2: %b terminal %032b\n", o, terminal);
+        //fprintf(stderr, "o2: %b terminal %032b\n", o, terminal);
 
         uint16_t o1;
         uint8_t o1_offset = 0;
         for (uint8_t i = 0; i < height; i++) {
             if (terminal && (i == 0)) {
                 o1 = obj.start[o1_offset];
-                fprintf(stderr, "\tstarting o1 %u: %016b\n", o1_offset, o1);
+                //fprintf(stderr, "\tstarting o1 %u: %016b\n", o1_offset, o1);
                 o1_offset++;
             } else if (terminal && (i == height - 1)) {
                 if (middle && height > 2)
                     o1_offset++;
                 o1 = obj.start[o1_offset];
-                fprintf(stderr, "\tending o1 %u: %016b\n", o1_offset, o1);
+                //fprintf(stderr, "\tending o1 %u: %016b\n", o1_offset, o1);
             } else {
                 o1 = obj.start[o1_offset];
-                fprintf(stderr, "\tmiddle o1 %u: %016b\n", o1_offset, o1);
+                //fprintf(stderr, "\tmiddle o1 %u: %016b\n", o1_offset, o1);
             }
 
             // draw o1
@@ -354,15 +354,15 @@ void stream_screen(bool reverse) {
                 uint8_t block;
                 if (j == 0) {
                     block = obj1.start;
-                    fprintf(stderr, "\t\tstart block %u: %u\n", j, block);
+                    //fprintf(stderr, "\t\tstart block %u: %u\n", j, block);
                     if (!o1_middle)
                         cont = false;
                 } else if (j == width - 1) {
                     block = obj1.start + (o1_terminal ? 1 : 0) + (middle ? 1 : 0);
-                    fprintf(stderr, "\t\tend block %u: %u\n", j, block);
+                    //fprintf(stderr, "\t\tend block %u: %u\n", j, block);
                 } else {
                     block = obj1.start + (o1_terminal ? 1 : 0);
-                    fprintf(stderr, "\t\tmiddle block %u: %u\n", j, block);
+                    //fprintf(stderr, "\t\tmiddle block %u: %u\n", j, block);
                 }
 
                 if (vertical) {

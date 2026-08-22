@@ -12,7 +12,7 @@ void load_tileset(void *_data) {
 
 void clear_pixelbuf() { memset(engine.pixelbuf, 0, sizeof(engine.pixelbuf)); }
 
-void draw_tile(uint16_t tile, uint16_t y, uint16_t x, uint8_t palette,
+void draw_tile(uint16_t tile, int16_t y, int16_t x, uint8_t palette,
                uint8_t attributes) {
     if (x < 0 || x >= X_RESOLUTION || y < 0 || y >= Y_RESOLUTION) {
         return;

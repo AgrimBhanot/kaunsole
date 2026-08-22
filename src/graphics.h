@@ -38,8 +38,8 @@ struct sprite {
     uint8_t frame;
     uint8_t attributes;
     uint8_t palette;
-    uint8_t y;
-    uint8_t x;
+    int16_t y;
+    int16_t x;
     int8_t falling;
     uint8_t screen;
 };
@@ -62,6 +62,6 @@ void draw_chars(const char *text, fnt font, uint8_t y, uint8_t x,
                 uint8_t palette);
 void draw_sprite(struct sprite *);
 void next_frame(struct sprite *sprite);
-void draw_tile(uint16_t tile, uint16_t y, uint16_t x, uint8_t palette,
+void draw_tile(uint16_t tile, int16_t y, int16_t x, uint8_t palette,
                uint8_t attributes);
 void clear_pixelbuf();
