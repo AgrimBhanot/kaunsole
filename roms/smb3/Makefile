@@ -8,4 +8,3 @@ $(BUILDDIR)/smb3: $(SRCS) $(ASSETS)
 
 clean:
 	rm game *.o
-

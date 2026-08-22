@@ -3,7 +3,9 @@
 #include <SDL3/SDL_scancode.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
+#include "../util.h"
 #include "../backend.h"
 #include "../graphics.h"
 
@@ -149,20 +151,73 @@ struct input backend_input() {
     return input;
 }
 
+// uint8_t backend_load_roms(char paths[8][64]) {
+//     DIR *dir = opendir("build/roms");
+
+//     struct dirent *ent;
+//     uint8_t i = 0;
+//     while ((ent = readdir(dir))) {
+//         if (ent->d_type == DT_REG) {
+//             snprintf(paths[i], 64, "build/roms/%s", ent->d_name);
+//             i++;
+//         }
+//     }
+//     closedir(dir);
+//     return i;
+// }
+
+
+// uint8_t backend_load_roms(char paths[8][64]) { // orginal version didnt work on ubuntu
+//     DIR *dir = opendir("build/roms");
+//     if (!dir) return 0;
+
+//     struct dirent *ent;
+//     uint8_t i = 0;
+//     while ((ent = readdir(dir)) && i < 8) {
+//         char fullpath[128];
+//         snprintf(fullpath, sizeof(fullpath), "build/roms/%s", ent->d_name);
+
+//         struct stat st; // holds metadata about file, like timestamp, size, type
+//         if (stat(fullpath, &st) == 0 && S_ISREG(st.st_mode)) {// stat fills st, S_ISREG checks if it's a regular file
+//             snprintf(paths[i], 64, "%s", fullpath); 
+//             printf("%s",paths[i]);
+//             i++;
+//         }
+//     }
+
+//     closedir(dir);
+//     return i;
+// }
 uint8_t backend_load_roms(char paths[8][64]) {
+    // Look inside build/roms relative to the project root
     DIR *dir = opendir("build/roms");
+    if (!dir) {
+        LOG("Failed to open build/roms directory");
+        return 0;
+    }
 
     struct dirent *ent;
     uint8_t i = 0;
-    while ((ent = readdir(dir))) {
-        if (ent->d_type == DT_REG) {
-            snprintf(paths[i], 64, "build/roms/%s", ent->d_name);
+    while ((ent = readdir(dir)) && i < 8) {
+        // Skip hidden entries like '.' and '..'
+        if (ent->d_name[0] == '.') continue;
+
+        char fullpath[128];
+        // Store the correct path including the 'build/' prefix for dlopen
+        snprintf(fullpath, sizeof(fullpath), "build/roms/%s", ent->d_name);
+
+        struct stat st;
+        if (stat(fullpath, &st) == 0 && S_ISREG(st.st_mode)) {
+            snprintf(paths[i], 64, "%s", fullpath);
+            LOG("Found ROM: %s", paths[i]);
             i++;
         }
     }
+
     closedir(dir);
     return i;
 }
+
 
 void backend_sleep(uint32_t ms) {
     SDL_Delay(ms);

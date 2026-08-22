@@ -4,6 +4,9 @@
 
 #include "defs.h"
 
+#define N_SCREENS 8
+
+
 void map_draw(uint32_t *map);
 
 enum camera_mode {
@@ -23,5 +26,3 @@ void camera_reset_pos(uint16_t y, uint16_t x);
 void camera_move(int16_t y, int16_t x);
 void camera_set_guides(struct camera_guide *guide);
 void camera_draw();
-
-void collide_entity(struct entity *entity, int8_t dy, int8_t dx);

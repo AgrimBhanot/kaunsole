@@ -105,7 +105,7 @@ void draw_sprite(struct sprite *sprite) {
         texture->width * texture->height;
 
     if (attributes & FLIP_Y) {
-        for (int row = texture->height; row > 0; --row) {
+        for (int row = texture->height; row > 0; --row) { //This is likely a bug unless your sprite coordinate convention intentionally defines sprite->y differently.
             if (attributes & FLIP_X) {
                 for (int column = texture->width; column > 0; --column) {
                     draw_tile(texture->tiles[tile], sprite->y + row * TILE_SIZE,

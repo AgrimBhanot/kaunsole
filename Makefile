@@ -5,11 +5,13 @@ ROMS := smb3
 ENGINES := $(foreach b,$(BACKENDS),build/$(b))
 ROMSS := $(foreach b,$(ROMS),build/roms/$(b).so)
 
-CFLAGS := $(shell pkg-config --libs --cflags sdl3)
+# Separate flags properly: --cflags for compilation, --libs for linking
+CFLAGS := $(shell pkg-config --cflags sdl3)
+LDFLAGS := $(shell pkg-config --libs sdl3)
 
 DEBUG := -g -O0
 
-OBJS := src/audio.c src/engine.c src/graphics.c src/collision.c
+OBJS := src/audio.c src/engine.c src/graphics.c
 
 all: engines roms
 
@@ -21,7 +23,7 @@ build/roms/%.so:
 	$(MAKE) -C roms/$* BUILDDIR=../../build/roms
 
 clean:
-	rm build/sdl build/roms/*
+	rm -rf build/*
 
 engines: $(ENGINES)
 roms: $(ROMSS)
@@ -31,4 +33,3 @@ engine/%: build/%
 
 .PHONY: roms/%
 roms/%: build/roms/%.so
-
