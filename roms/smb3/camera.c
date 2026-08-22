@@ -81,9 +81,9 @@ const uint16_t blocks[256][4] = {
     { TILE(6, 0, 5), TILE(6, 0, 5), TILE(6, 7, 3), TILE(6, 7, 3) }, /* tree_bl */
     { TILE(6, 7, 4), TILE(6, 7, 4), TILE(6, 0, 5), TILE(6, 0, 5) }, /* tree_br */
 
-
-    
-
+    { TILE(0, 17, 0), TILE(0, 17, 1), (TILE(0, 17, 0) | TILE_Y_MIRROR), (TILE(0, 17, 1) | TILE_Y_MIRROR) }, /* mushroomp_block */
+    { TILE(0, 17, 2), TILE(0, 17, 3), (TILE(0, 17, 2) | TILE_Y_MIRROR), (TILE(0, 17, 3) | TILE_Y_MIRROR) }, /* flowerp_block */
+    { TILE(0, 17, 4), TILE(0, 17, 5), (TILE(0, 17, 4) | TILE_Y_MIRROR), (TILE(0, 17, 5) | TILE_Y_MIRROR) }, /* starp_block */
 };
 
 const struct obj1d objs1d[256] = {
@@ -195,6 +195,18 @@ const struct obj1d objs1d[256] = {
         .start = 49,
         .flags = O1_MIDDLE
     },
+    (struct obj1d) /* MUSHROOMP_BLOCK */ {
+        .start = 51,
+        .flags = O1_MIDDLE,
+    },
+    (struct obj1d) /* FLOWERP_BLOCK */ {
+        .start = 52,
+        .flags = O1_MIDDLE,
+    },
+    (struct obj1d) /* STARP_BLOCK */ {
+        .start = 53,
+        .flags = O1_MIDDLE,
+    },
 };
 
 const struct obj2d objs2d[256] = {
@@ -290,6 +302,21 @@ const struct obj2d objs2d[256] = {
         // TREE
         .start = (uint16_t []) { O1(25, 0), O1(26, 0), O1(26, 0)},
         .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
+    },
+    (struct obj2d){
+        // MUSHROOMP_BLOCK
+        .start = (uint16_t []) { O1(27, 0), O1(27, 0), O1(27, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // FLOWERP_BLOCK
+        .start = (uint16_t []) { O1(28, 0), O1(28, 0), O1(28, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // STARP_BLOCK
+        .start = (uint16_t []) { O1(29, 0), O1(29, 0), O1(29, 0)},
+        .flags = O2_VERTICAL,
     },
 };
 
