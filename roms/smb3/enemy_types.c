@@ -1,49 +1,95 @@
 #include "enemy_types.h"
 #include "defs.h"
+#include "obj.h"
 #include "collision.h"
 #include "enemy.h"
 #include "../../src/graphics.h"
+#include "../../src/sprite.h"
 #include <stdio.h>
 
 /* ══════════════════════════════════════════════════════════════════════
  *  Dummy textures — replace with real tileset references later
  * ══════════════════════════════════════════════════════════════════ */
 
-static const struct texture tex_goomba = {
-    .height = 2, .width = 2, .num_frames = 1,
-    .tiles = (uint16_t[]){TILE(6, 5, 3), TILE(6, 5, 4),
-                          TILE(6, 5, 5), TILE(6, 5, 6)},
-};
-static const struct texture tex_goomba_flat = {
-    .height = 1, .width = 2, .num_frames = 1,
-    .tiles = (uint16_t[]){TILE(6, 5, 5), TILE(6, 5, 6)},
+
+// static const struct texture tex_goomba_stand = {
+//     .height = 2,
+//     .width = 2,
+//     .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR,
+//                           TILE(9, 29, 9),TILE(9, 29, 9) | TILE_Y_MIRROR,
+//                         },
+//     .num_frames = 1,
+// };
+
+static const struct texture tex_goomba_run = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR, 
+                          TILE(9, 29, 9),TILE(9, 29, 11) | TILE_Y_MIRROR,
+
+                          TILE(9, 29, 8), TILE(9, 29, 8) | TILE_Y_MIRROR,
+                          TILE(9, 29, 11), TILE(9, 29, 9) | TILE_Y_MIRROR
+                        },
+    .num_frames = 2,
 };
 
-static const struct texture tex_turtle = {
-    .height = 2, .width = 2, .num_frames = 1,
-    .tiles = (uint16_t[]){TILE(6, 5, 3), TILE(6, 5, 4),
-                          TILE(6, 5, 5), TILE(6, 5, 6)},
-};
-static const struct texture tex_shell = {
-    .height = 2, .width = 2, .num_frames = 1,
-    .tiles = (uint16_t[]){TILE(6, 5, 5), TILE(6, 5, 6),
-                          TILE(6, 5, 5), TILE(6, 5, 6)},
+static const struct texture tex_goomba_die = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 31, 11), TILE(9, 31, 11), 
+                          TILE(9, 30, 11),TILE(9, 30, 11) | TILE_Y_MIRROR,
+                        },
+    .num_frames = 1,
 };
 
-static const struct texture tex_duck = {
-    .height = 2, .width = 2, .num_frames = 1,
-    .tiles = (uint16_t[]){TILE(6, 5, 3), TILE(6, 5, 4),
-                          TILE(6, 5, 5), TILE(6, 5, 6)},
+
+static const struct texture tex_koopa_run = {
+    .height = 4,
+    .width = 2,
+    .tiles = (uint16_t []){ TILE(9,28,1), TILE(9,28,0),
+                            TILE(9,28,2), TILE(9,28,4),
+                            TILE(9,28,3), TILE(9,28,5),
+                            TILE(9,28,6), TILE(9,28,8),
+
+                            TILE(9,28,1), TILE(9,28,0),
+                            TILE(9,28,10), TILE(9,28,4),
+                            TILE(9,28,11), TILE(9,28,5),
+                            TILE(9,31,8), TILE(9,31,10),
+    },
+    .num_frames = 2,
 };
+
+static const struct texture tex_koopa_shell = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t []){ TILE(9,29,0), TILE(9,29,0) | TILE_Y_MIRROR,
+                            TILE(9,29,1), TILE(9,29,1) | TILE_Y_MIRROR,
+
+                            TILE(9,29,4) | TILE_Y_MIRROR, TILE(9,29,2) | TILE_Y_MIRROR,
+                            TILE(9,29,5) | TILE_Y_MIRROR, TILE(9,29,3) | TILE_Y_MIRROR,
+
+                            TILE(9,31,12), TILE(9,31,12) | TILE_Y_MIRROR,
+                            TILE(9,31,13), TILE(9,31,13) | TILE_Y_MIRROR,
+
+                            TILE(9,29,2), TILE(9,29,4),
+                            TILE(9,29,3), TILE(9,29,5),
+    },
+    .num_frames = 4,
+};
+
 
 static const struct texture tex_shooter = {
     .height = 2, .width = 2, .num_frames = 1,
     .tiles = (uint16_t[]){TILE(6, 5, 3), TILE(6, 5, 4),
                           TILE(6, 5, 5), TILE(6, 5, 6)},
 };
-static const struct texture tex_fireball = {
-    .height = 1, .width = 1, .num_frames = 1,
-    .tiles = (uint16_t[]){TILE(6, 5, 3)},
+static const struct texture tex_bullet_b = {
+    .height = 2,
+    .width = 2,
+    .tiles = (uint16_t[]){TILE(9, 29, 12), TILE(9, 29, 14), 
+                          TILE(9, 29, 13),TILE(9, 29, 15),
+                        },
+    .num_frames = 1,
 };
 
 /* ── Shared helpers ────────────────────────────────────────────────── */
@@ -64,9 +110,12 @@ static void reverse_on_wall(struct entity *self) {
     if (self->x_vel == 0) {
         self->x_dir = -self->x_dir;
         self->x_vel = self->x_dir;
+        if (self->x_dir>0) self->sprite.attributes |= FLIP_X;
+        else self->sprite.attributes &= ~FLIP_X;
     }
 }
 
+extern uint32_t cnt_update;
 /* ══════════════════════════════════════════════════════════════════════
  *  1. GOOMBA — walks, reverses on walls, squished when stomped
  * ══════════════════════════════════════════════════════════════════ */
@@ -78,6 +127,8 @@ static void goomba_init(struct entity *self) {
 
 static void goomba_update(struct entity *self, float dt) {
     (void)dt;
+    if (!(cnt_update%10)) next_frame(&self->sprite);
+
     if (self->enemy_state == ENEM_DEAD) {
         if (self->state_timer > 0) {
             self->state_timer--;
@@ -94,7 +145,7 @@ static void goomba_stomped(struct entity *self, struct entity *player) {
     (void)player;
     self->enemy_state = ENEM_DEAD;
     self->state_timer = 30;
-    self->sprite.texture = &tex_goomba_flat;
+    self->sprite.texture = &tex_goomba_die;
     self->sprite.hitbox.height = 8;
     self->x_vel = 0;
     self->y_vel = 0;
@@ -129,6 +180,8 @@ static void turtle_init(struct entity *self) {
 
 static void turtle_update(struct entity *self, float dt) {
     (void)dt;
+    if (!(cnt_update%10)) next_frame(&self->sprite);
+
     switch (self->enemy_state) {
     case ENEM_WALKING:
         reverse_on_wall(self);
@@ -155,11 +208,12 @@ static void turtle_update(struct entity *self, float dt) {
 
 static void turtle_stomped(struct entity *self, struct entity *player) {
     (void)player;
+    self->sprite.hitbox.height=16;
     switch (self->enemy_state) {
     case ENEM_WALKING:
         /* Enter shell */
         self->enemy_state = ENEM_SHELL_IDLE;
-        self->sprite.texture = &tex_shell;
+        self->sprite.texture = &tex_koopa_shell;
         self->x_vel = 0;
         break;
 
@@ -223,6 +277,7 @@ static void duck_init(struct entity *self) {
 
 static void duck_update(struct entity *self, float dt) {
     (void)dt;
+    if (!(cnt_update%10)) next_frame(&self->sprite);
     if (self->enemy_state == ENEM_DEAD) {
         if (self->state_timer > 0)
             self->state_timer--;
@@ -291,12 +346,13 @@ static void spawn_fireball(struct entity *shooter, int8_t direction) {
     *fb = (struct entity){
         .type         = ENTITY_PROJECTILE,
         .sprite = {
-            .texture  = &tex_fireball,
+            .texture  = &tex_bullet_b,
             .palette  = 0,
             .attributes = 0,
             .x        = 0, /* will be projected */
             .y        = shooter->sprite.y + 4,
             .hitbox   = { .x = 0, .y = 0, .height = 8, .width = 8 },
+            .attributes = (direction>0) ? 1: 0,
         },
         .x_vel        = direction * FIREBALL_SPEED,
         .falling      = false,
@@ -310,7 +366,6 @@ static void spawn_fireball(struct entity *shooter, int8_t direction) {
 
 static void shooter_update(struct entity *self, float dt) {
     (void)dt;
-
     if (self->state_timer > 0) {
         self->state_timer--;
     } else {
@@ -353,7 +408,7 @@ const struct enemy_type enemy_types[ENEMY_SUBTYPE_COUNT] = {
         .on_stomped  = goomba_stomped,
         .on_side_hit = goomba_side_hit,
         .on_shell_hit = goomba_shell_hit,
-        .texture     = &tex_goomba,
+        .texture     = &tex_goomba_run,
         .default_x_vel = -1,
         .hitbox_w    = 16,
         .hitbox_h    = 16,
@@ -364,10 +419,10 @@ const struct enemy_type enemy_types[ENEMY_SUBTYPE_COUNT] = {
         .on_stomped  = turtle_stomped,
         .on_side_hit = turtle_side_hit,
         .on_shell_hit = turtle_shell_hit,
-        .texture     = &tex_turtle,
+        .texture     = &tex_koopa_run,
         .default_x_vel = -1,
         .hitbox_w    = 16,
-        .hitbox_h    = 16,
+        .hitbox_h    = 32,
     },
     [ENEMY_DUCK] = {
         .on_init     = duck_init,
@@ -375,10 +430,10 @@ const struct enemy_type enemy_types[ENEMY_SUBTYPE_COUNT] = {
         .on_stomped  = duck_stomped,
         .on_side_hit = duck_side_hit,
         .on_shell_hit = duck_shell_hit,
-        .texture     = &tex_duck,
+        .texture     = &tex_koopa_run,
         .default_x_vel = -1,
         .hitbox_w    = 16,
-        .hitbox_h    = 16,
+        .hitbox_h    = 32,
     },
     [ENEMY_FIREBALL_SHOOTER] = {
         .on_init     = shooter_init,

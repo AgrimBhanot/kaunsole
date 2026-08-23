@@ -3,3 +3,4 @@ tools/mapgen/map.bin
 tools/mapgen/mariomap.json
 build/
 .clangd
+roms/smb3/char_asset

@@ -40,6 +40,11 @@ enum entity_type : unsigned char {
     ENTITY_KILLED,
 };
 
+struct block_entry {
+    uint8_t id;
+    uint8_t palette;
+};
+
 struct entity {
     struct sprite sprite;
     enum entity_type type;

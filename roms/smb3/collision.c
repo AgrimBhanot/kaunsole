@@ -38,9 +38,10 @@ int8_t colliding_y(struct sprite *s1, struct sprite *s2) {
 }
 
 /* ── Tile collision sampling ───────────────────────────────────────── */
-
-extern uint16_t block_buffer[N_SCREENS][16][16];
+extern struct block_entry block_buffer[N_SCREENS][16][16];
 extern uint8_t camera_y;
+uint16_t non_collidable[] = {0,    3,4,5,6,7,8,19, 41,42,43};
+#define ARR_LEN (sizeof(non_collidable) / sizeof(non_collidable[0]))
 
 uint16_t solid_at_world(int16_t world_x, int16_t world_y) {
     if (world_y < 0 || world_y >= 256) return 0;
@@ -51,8 +52,11 @@ uint16_t solid_at_world(int16_t world_x, int16_t world_y) {
     uint8_t screen = world_x / 256;
     uint8_t bx = (world_x % 256) / 16;
     uint8_t by = world_y / 16;
-
-    return block_buffer[screen][by][bx];
+    //printf("Checking screen %d, pos (%d,%d) -> tile ID: %d\n", screen, bx, by, block_buffer[screen][by][bx].id);
+    for(int8_t i =0; i<ARR_LEN; i++){
+        if (block_buffer[screen][by][bx].id==non_collidable[i]) return 0;
+    }
+    return block_buffer[screen][by][bx].id;
 }
 
 /* ── Two-pass axis-separated tile collision ─────────────────────────
@@ -147,6 +151,7 @@ void handle_entity_collisions(struct entity *player, struct entity ents[], uint8
         struct entity *other = &ents[i];
 
         if (other == player) continue;
+        if (other->enemy_state == ENEM_DEAD ) continue;
         if (other->type != ENTITY_ENEMY && other->type != ENTITY_PROJECTILE) continue;
         if (!other->sim_active) continue;
         if (other->sprite.hitbox.height == 0 || other->sprite.hitbox.width == 0) continue;
