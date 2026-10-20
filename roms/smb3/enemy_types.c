@@ -80,8 +80,8 @@ static const struct texture tex_koopa_shell = {
 
 static const struct texture tex_shooter = {
     .height = 2, .width = 2, .num_frames = 1,
-    .tiles = (uint16_t[]){TILE(6, 5, 3), TILE(6, 5, 4),
-                          TILE(6, 5, 5), TILE(6, 5, 6)},
+    .tiles = (uint16_t[]){TILE(12, 26, 4), TILE(12, 26, 6),
+                          TILE(12, 26, 5), TILE(12, 26, 7)},
 };
 static const struct texture tex_bullet_b = {
     .height = 2,

@@ -11,6 +11,7 @@
 // MAP
 
 extern uint16_t font[256];
+struct block_entry block_buffer[N_SCREENS][16][16];
 
 const uint16_t blocks[256][4] = {
     { TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0), TILE(0, 3, 0) }, /* 0 blank */
@@ -77,10 +78,16 @@ const uint16_t blocks[256][4] = {
     { TILE(13, 11, 4), TILE(13, 11, 7), TILE(13, 11, 5), TILE(13, 0, 5) }, /* 45 rbridge_m */
     { TILE(13, 11, 6), TILE(13, 11, 7), TILE(13, 0, 5), TILE(13, 0, 5) }, /* 46 rbridge_r */
 
-    { TILE(6, 6, 11), TILE(6, 6, 15), TILE(6, 6, 12), TILE(6, 7, 0) }, /* 47 tree_tl */
-    { TILE(6, 6, 13), TILE(6, 7, 1), TILE(6, 6, 14), TILE(6, 7, 2) }, /* 48 tree_tr */
-    { TILE(6, 0, 5), TILE(6, 0, 5), TILE(6, 7, 3), TILE(6, 7, 3) }, /* 49 tree_bl */
-    { TILE(6, 7, 4), TILE(6, 7, 4), TILE(6, 0, 5), TILE(6, 0, 5) }, /* 50 tree_br */
+    { TILE(6, 6, 11), TILE(6, 6, 15), TILE(6, 6, 12), TILE(6, 7, 0) }, /*47 tree_tl */
+    { TILE(6, 6, 13), TILE(6, 7, 1), TILE(6, 6, 14), TILE(6, 7, 2) }, /*48 tree_tr */
+    { TILE(6, 0, 5), TILE(6, 0, 5), TILE(6, 7, 3), TILE(6, 7, 3) }, /*49 tree_bl */
+    { TILE(6, 7, 4), TILE(6, 7, 4), TILE(6, 0, 5), TILE(6, 0, 5) }, /*50 tree_br */
+
+    { TILE(12, 26, 4), TILE(12, 26, 5), TILE(12, 26, 6), TILE(12, 26, 7)}, /*51 bulletb_head*/
+    { TILE(12, 30, 12), TILE(12, 30, 13), TILE(12, 30, 14), TILE(12, 30, 15)}, /*52 bulletb_top*/
+    { TILE(12, 30, 4), TILE(12, 30, 4), TILE(12, 30, 5), TILE(12, 30, 5)}, /*53 bulletb_bottom*/
+
+    { TILE(7, 30, 8), TILE(7, 30, 9), TILE(7, 30, 10), TILE(7, 30, 11) }, /*54 coin */
 };
 
 const struct obj1d objs1d[256] = {
@@ -192,6 +199,22 @@ const struct obj1d objs1d[256] = {
         .start = 49,
         .flags = O1_MIDDLE
     },
+    (struct obj1d) /* BULLETB_HEAD */{
+        .start = 51,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* BULLETB_TOP */{
+        .start = 52,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d)/* BULLETB_BOTTOM */{
+        .start = 53,
+        .flags = O1_MIDDLE
+    },
+    (struct obj1d) /* COIN */ {
+        .start = 54, 
+        .flags = O1_MIDDLE,
+    },
 };
 
 const struct obj2d objs2d[256] = {
@@ -288,6 +311,20 @@ const struct obj2d objs2d[256] = {
         .start = (uint16_t []) { O1(25, 0), O1(26, 0), O1(26, 0)},
         .flags =  O2_VERTICAL | O2_TERMINAL | O2_MIDDLE,
     },
+    (struct obj2d){
+        // BULLETB_HEAD
+        .start = (uint16_t []) { O1(27, 0), O1(27, 0), O1(27, 0)},
+        .flags = O2_VERTICAL,
+    },
+    (struct obj2d){
+        // BULLETB_SHAFT
+        .start = (uint16_t []) { O1(28, 0), O1(29, 0), O1(29, 0)},
+        .flags =  O2_VERTICAL | O2_TERMINAL,
+    },
+    (struct obj2d) /* COIN */ {
+        .start = (uint16_t []) { O1(30, 0)},
+        .flags = O2_VERTICAL,
+    },
 };
 
 
@@ -298,13 +335,6 @@ const uint32_t *active_map;
 uint8_t active_screen;
 uint8_t read_offset;
 uint8_t write_offset;
-struct block_entry {
-    uint8_t id;
-    uint8_t palette;
-};
-
-struct block_entry block_buffer[N_SCREENS][16][16];
-
 
 
 void stream_screen(bool reverse) {

@@ -3,9 +3,13 @@
 #include <stdio.h>
 #include "camera.h"
 #include "defs.h"
+#include "obj.h"
 #include "enemy_types.h"
 
+#define BLOCK_COIN 54
+
 /* ── Sprite-vs-sprite overlap tests ────────────────────────────────── */
+extern  uint8_t coin_count;
 
 int8_t colliding_x(struct sprite *s1, struct sprite *s2) {
     int16_t x_dist = (s2->x + s2->hitbox.x) - (s1->x + s1->hitbox.x);
@@ -56,8 +60,58 @@ uint16_t solid_at_world(int16_t world_x, int16_t world_y) {
     for(int8_t i =0; i<ARR_LEN; i++){
         if (block_buffer[screen][by][bx].id==non_collidable[i]) return 0;
     }
+    if(block_buffer[screen][by][bx].id==BLOCK_COIN){
+       block_buffer[screen][by][bx].id=0;
+       coin_count++; 
+    }
     return block_buffer[screen][by][bx].id;
 }
+
+
+// static void check_coin_at_point(int16_t draw_x, int16_t draw_y) {
+//     int32_t raw_x = draw_x + camera_x;
+//     uint8_t screen;
+//     uint8_t bx;
+
+//     if (raw_x < 0) {
+//         screen = active_screen;
+//         bx = 0;
+//     } else if (raw_x < 256) {
+//         screen = active_screen;
+//         bx = raw_x / 16;
+//     } else {
+//         screen = (active_screen + 1) % N_SCREENS;
+//         bx = (raw_x - 256) / 16;
+//     }
+
+//     uint8_t by = (draw_y + camera_y) / 16;
+
+//     if (block_buffer[screen][by][bx].id == BLOCK_COIN) {
+//         block_buffer[screen][by][bx].id = 0;
+//         coin_count++;
+//     }
+// }
+
+// static void check_mario_coin_collisions(struct entity *mario_ent) {
+//     struct sprite *s = &mario_ent->sprite;
+//     if (solid_at_world(s->x + s->hitbox.x, s->y + s->hitbox.y)==BLOCK_COIN) {
+//         coin_count++;
+//         // block_buffer[s->screen][by][bx].id = 
+//         return;
+//     };
+//     if (solid_at_world(s->x + s->hitbox.x + s->hitbox.width, s->y + s->hitbox.y)==BLOCK_COIN){
+//         coin_count++;
+//         return;
+//     };
+//     if(solid_at_world(s->x + s->hitbox.x, s->y + s->hitbox.y + s->hitbox.height)==BLOCK_COIN){
+//         coin_count++;
+//         return;
+//     };
+//     if(solid_at_world(s->x + s->hitbox.x + s->hitbox.width, s->y + s->hitbox.y + s->hitbox.height)==BLOCK_COIN){
+//         coin_count++;
+//         return;
+//     };
+// }
 
 /* ── Two-pass axis-separated tile collision ─────────────────────────
  *
@@ -69,7 +123,6 @@ uint16_t solid_at_world(int16_t world_x, int16_t world_y) {
  *  This prevents the diagonal-push glitch where landing on a
  *  platform corner ejects the entity sideways.
  * ────────────────────────────────────────────────────────────────── */
-
 int16_t collide_entity_x(struct entity *entity, int16_t world_x, int32_t dx) {
     if (dx == 0) return world_x;
 
@@ -133,12 +186,13 @@ void collide_entity_y(struct entity *entity, int16_t world_x, int32_t dy) {
 static const struct texture tex_mario_die = {
     .height = 2,
     .width = 2,
-    .tiles = (uint16_t[]){TILE(10, 12, 12), TILE(10, 12, 12) | 1 << 15,
-                          TILE(10, 12, 13), TILE(10, 12, 13) | 1 << 15},
+    .tiles = (uint16_t[]){TILE(10, 12, 12), TILE(10, 12, 12) | TILE_Y_MIRROR,
+                          TILE(10, 12, 13), TILE(10, 12, 13) | TILE_Y_MIRROR},
     .num_frames = 1,
 };
 
 static void kill_player(struct entity *player) {
+    
     player->sprite.texture = &tex_mario_die;
     player->sprite.hitbox.height = 0;
     player->sprite.hitbox.width = 0;

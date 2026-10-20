@@ -9,6 +9,13 @@
 
 void map_draw(uint32_t *map);
 
+struct block_entry {
+    uint8_t id;
+    uint8_t palette;
+};
+
+extern struct block_entry block_buffer[N_SCREENS][16][16];
+
 enum camera_mode {
     AXIS = 1,
     DIRECTION = 1 << 1,

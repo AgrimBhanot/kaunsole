@@ -92,18 +92,18 @@ struct input backend_input() {
                 if (input.y == 1)
                     input.y = 0;
                 break;
-            case SDL_SCANCODE_R:
+            case SDL_SCANCODE_A:
                 if (input.x == -1)
                     input.x = 0;
                 break;
-            case SDL_SCANCODE_T:
+            case SDL_SCANCODE_D:
                 if (input.x == 1)
                     input.x = 0;
                 break;
             case SDL_SCANCODE_N:
                 input.a = false;
                 break;
-            case SDL_SCANCODE_E:
+            case SDL_SCANCODE_SPACE:
                 input.b = false;
                 break;
             case SDL_SCANCODE_I:
@@ -124,16 +124,16 @@ struct input backend_input() {
             case SDL_SCANCODE_S:
                 input.y = 1;
                 break;
-            case SDL_SCANCODE_R:
+            case SDL_SCANCODE_A:
                 input.x = -1;
                 break;
-            case SDL_SCANCODE_T:
+            case SDL_SCANCODE_D:
                 input.x = 1;
                 break;
             case SDL_SCANCODE_N:
                 input.a = true;
                 break;
-            case SDL_SCANCODE_E:
+            case SDL_SCANCODE_SPACE:
                 input.b = true;
                 break;
             case SDL_SCANCODE_I:

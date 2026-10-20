@@ -27,12 +27,12 @@
 
 const uint32_t map[] = {
     O2(15, 0, 11, 1, 1, 1),
-    O2(9, 4, 8, 0, 1, 2),
+    O2(20, 4, 8, 0, 1, 2),
     O2(5, 8, 8, 0, 1, 3),
-    O2(9, 9, 8, 0, 1, 2),
+    O2(20, 9, 8, 0, 1, 2),
     O2(5, 10, 8, 0, 1, 3),
     O2(5, 10, 5, 0, 1, 3),
-    O2(9, 11, 8, 0, 1, 2),
+    O2(20, 11, 8, 0, 1, 2),
     O2(5, 12, 8, 0, 1, 3),
     O2(15, 11, 11, 3, 1, 1),
     O2(5, 0, 12, 15, 4, 3) | O2_NEXT_PAGE, //SCREEN 0
@@ -287,9 +287,17 @@ void run() {
     }
 }
 
+
+uint8_t coin_count = 0;
+
 extern uint8_t camera_x;
 extern uint8_t camera_y;
 extern uint8_t active_screen;
+extern uint8_t read_offset;
+extern uint8_t write_offset;
+extern uint8_t screen_x;
+extern uint16_t map_x;
+
 
 uint8_t tile_attr = 0;
 
@@ -364,6 +372,104 @@ void move_entity(struct entity *entity) {
     }
 }
 
+int16_t center;
+bool had_y = false;
+uint32_t cnt_update = 0;
+
+void reset_level(void) {
+    /* Reset runtime counters/state */
+    coin_count = 0;
+    cnt_update = 0;
+    center = 0;
+    had_y = false;
+
+    /* Reset camera + streaming ring state before reloading map */
+    camera_x = 0;
+    camera_y = 0;
+    active_screen = 0;
+    read_offset = 0;
+    write_offset = 0;
+    screen_x = 0;
+    map_x = 0;
+
+    /* Clear streamed block cache so coins/edited blocks do not persist */
+    for (uint8_t s = 0; s < N_SCREENS; s++) {
+        for (uint8_t y = 0; y < 16; y++) {
+            for (uint8_t x = 0; x < 16; x++) {
+                block_buffer[s][y][x].id = 0;
+                block_buffer[s][y][x].palette = 0;
+            }
+        }
+    }
+
+    /* Clear all entities first, including projectiles/reused slots */
+    for (uint8_t i = 0; i < NUM_ENTITIES; i++) {
+        entities[i] = (struct entity){0};
+        entities[i].type = ENTITY_NONE;
+    }
+
+    /* Recreate Mario */
+    entities[0] = (struct entity){
+        .type = ENTITY_PLAYER,
+        .sprite = {
+            .texture = &tex_mario_run,
+            .palette = 0,
+            .attributes = FLIP_X,
+            .x = 0,
+            .y = 0,
+            .hitbox = {
+                .x = 2,
+                .y = 0,
+                .height = 16,
+                .width = 12,
+            },
+        },
+        .world_screen = 0,
+        .world_x = 0,
+        .falling = false,
+        .sim_active = true,
+    };
+
+    /* Recreate box */
+    entities[1] = (struct entity){
+        .type = ENTITY_BOX,
+        .world_screen = 0,
+        .world_x = 4,
+        .sprite = {
+            .texture = &tex_box,
+            .palette = 0,
+            .attributes = 0,
+            .x = 4,
+            .y = 0,
+            .hitbox = {
+                .x = 0,
+                .y = 0,
+                .height = 16,
+                .width = 16,
+            },
+            .screen = 0,
+        },
+        .falling = false,
+    };
+
+    /* Recreate enemies */
+    enemy_init_at(&entities[2], 0, 192, 128, ENEMY_GOOMBA);
+    enemy_init_at(&entities[3], 1, 220, 128, ENEMY_TURTLE);
+    enemy_init_at(&entities[4], 5, 50, 128, ENEMY_DUCK);
+    enemy_init_at(&entities[5], 3, 100, 128, ENEMY_FIREBALL_SHOOTER);
+
+    /* Reload level geometry from the beginning */
+    load_map(map);
+
+    /* Project sprites after camera/map reset */
+    for (uint8_t i = 0; i < NUM_ENTITIES; i++) {
+        if (entities[i].type != ENTITY_NONE && entities[i].type != ENTITY_KILLED) {
+            entity_world_to_sprite(&entities[i], active_screen, camera_x);
+        }
+    }
+}
+
+
 void init() {
     engine.tileset = (struct tileset){
         .data = _binary_smb3_chr_start,
@@ -400,7 +506,7 @@ void init() {
     
     enemy_init_at(&entities[2], 0, 192, 128, ENEMY_GOOMBA);
     enemy_init_at(&entities[3], 1, 220, 128, ENEMY_TURTLE);
-    enemy_init_at(&entities[4], 2, 50, 128, ENEMY_DUCK);
+    enemy_init_at(&entities[4], 5, 50, 128, ENEMY_DUCK);
     enemy_init_at(&entities[5], 3, 100, 128, ENEMY_FIREBALL_SHOOTER);
     
     for (int i = 6; i < NUM_ENTITIES; i++) {
@@ -476,9 +582,7 @@ void entity_fall_kill(struct entity* entity){
         }
     }
 }
-bool had_y = false;
-uint32_t cnt_update = 0;
-int16_t center;
+
 
 void update(struct input input, uint32_t time) {
     float deltatime = (float)(time - gametime) / 1000;
@@ -490,7 +594,12 @@ void update(struct input input, uint32_t time) {
     if (input.start) {
         rom.running = false;
     }
-    if (mario.type == ENTITY_KILLED) {
+    if (input.select) {
+        reset_level();
+        return;
+    }
+    if (mario.type == ENTITY_KILLED && cnt_update %120==0) {
+        reset_level();
         return;
     }
     if (input.b && !mario.falling) {
@@ -630,6 +739,9 @@ void update(struct input input, uint32_t time) {
         }
     }
     
+    //check_mario_coin_collisions(&mario);
+
+    //enemy_update(&enemy1, deltatime);
     handle_entity_collisions(&mario, entities, NUM_ENTITIES);
     entity_fall_kill(entities);
 
@@ -697,6 +809,8 @@ void draw() {
     draw_chars(buf, font, 1, 0, 0);
     snprintf(buf, 64, "ACTIVE SCREEN %u", active_screen);
     draw_chars(buf, font, 2, 0, 0);
+    snprintf(buf, 64, "COINS %u", coin_count);
+    draw_chars(buf, font, 3, 0, 0);
 
     // draw_sprite(&box.sprite);
     if (mario.type != ENTITY_KILLED) {
